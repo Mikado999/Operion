@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="ht">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Operion</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+/* ─────────────────────────────────────────────
+   DESIGN TOKENS
+───────────────────────────────────────────── */
+:root{
+  --bg:#000;--s1:#080808;--s2:#0f0f0f;--s3:#161616;--s4:#1e1e1e;--s5:#272727;
+  --w1:#fff;--w2:rgba(255,255,255,.72);--w3:rgba(255,255,255,.38);
+  --w4:rgba(255,255,255,.16);--w5:rgba(255,255,255,.07);--w6:rgba(255,255,255,.04);
+  --b1:rgba(255,255,255,.08);--b2:rgba(255,255,255,.13);--b3:rgba(255,255,255,.22);
+  --ok:#32d583;--warn:#ff8040;--err:#ff4444;
+  --r-xs:4px;--r-sm:7px;--r-md:11px;--r-lg:14px;--r-xl:18px;--r-2xl:22px;--r-pill:9999px;
+  --font:"Geist","Inter",system-ui,sans-serif;
+  --mono:"Geist Mono","JetBrains Mono",monospace;
+  --serif:"Instrument Serif",Georgia,serif;
+  --transition:.13s ease;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--w1);font-family:var(--font);-webkit-font-smoothing:antialiased;font-size:14.5px;line-height:1.5}
+::selection{background:rgba(255,255,255,.15)}
+
+/* ─────────────────────────────────────────────
+   LAYOUT
+───────────────────────────────────────────── */
+.app{height:100vh;display:grid;grid-template-columns:232px 1fr}
+
+/* ─────────────────────────────────────────────
+   SIDEBAR
+───────────────────────────────────────────── */
+.sidebar{background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.sb-logo{display:flex;align-items:center;gap:9px;padding:18px 14px 14px}
+.sb-mark{width:24px;height:24px;border-radius:6px;background:var(--w1);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-mark svg{width:13px;height:13px}
+.sb-name{font-size:.85rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+.sb-new{margin:0 10px 10px;display:flex;align-items:center;gap:7px;padding:8px 12px;border-radius:var(--r-md);border:1px solid var(--b2);background:transparent;color:var(--w2);font-family:var(--font);font-size:.78rem;font-weight:500;cursor:pointer;transition:all var(--transition);width:calc(100% - 20px)}
+.sb-new:hover{background:var(--w5);border-color:var(--b3);color:var(--w1)}
+.sb-label{padding:8px 16px 4px;font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--w3)}
+.sb-hist{flex:1;overflow-y:auto;padding:2px 8px 8px;scrollbar-width:none}
+.sb-hist::-webkit-scrollbar{display:none}
+.sb-empty{padding:20px 12px;text-align:center;font-size:.75rem;color:var(--w3);line-height:1.65}
+.hist-row{display:flex;align-items:center;gap:7px;padding:8px 10px;border-radius:var(--r-sm);border:1px solid transparent;cursor:pointer;transition:all var(--transition);position:relative;min-width:0}
+.hist-row:hover{background:var(--w6);border-color:var(--b1)}
+.hist-row.active{background:var(--w5);border-color:var(--b2)}
+.hist-ico{flex-shrink:0;color:var(--w3)}
+.hist-body{flex:1;min-width:0}
+.hist-title{font-size:.76rem;font-weight:450;color:var(--w2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35}
+.hist-row.active .hist-title{color:var(--w1)}
+.hist-date{font-size:.62rem;color:var(--w3);margin-top:1px}
+.hist-del{display:none;position:absolute;right:7px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--w3);cursor:pointer;padding:3px 4px;border-radius:4px;font-size:.72rem;line-height:1;transition:color var(--transition),background var(--transition)}
+.hist-row:hover .hist-del{display:flex}
+.hist-del:hover{color:var(--w1);background:var(--w5)}
+.sb-foot{padding:10px 10px 14px;border-top:1px solid var(--b1)}
+.sb-user{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--r-md);cursor:pointer;transition:background var(--transition)}
+.sb-user:hover{background:var(--w5)}
+.sb-av{width:25px;height:25px;border-radius:50%;background:var(--s4);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;color:var(--w2);flex-shrink:0}
+.sb-uname{font-size:.76rem;font-weight:500}
+.sb-uplan{font-size:.62rem;color:var(--w3)}
+
+/* ─────────────────────────────────────────────
+   MAIN
+───────────────────────────────────────────── */
+.main{display:flex;flex-direction:column;overflow:hidden;background:var(--bg);position:relative}
+
+/* Topbar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:11px 22px;border-bottom:1px solid var(--b1);flex-shrink:0;background:var(--bg);z-index:10}
+.tb-l{display:flex;align-items:center;gap:6px}
+.model-chip{display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:var(--r-pill);border:1px solid var(--b2);background:transparent;font-family:var(--mono);font-size:.69rem;color:var(--w2);cursor:pointer;transition:all var(--transition)}
+.model-chip:hover{border-color:var(--b3);color:var(--w1);background:var(--w5)}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 5px var(--ok);animation:lpulse 2.8s ease infinite;flex-shrink:0}
+@keyframes lpulse{0%,100%{opacity:1}50%{opacity:.3}}
+/* Token usage badge */
+.tok-badge{display:flex;align-items:center;gap:4px;padding:4px 9px;border-radius:var(--r-pill);border:1px solid var(--b1);background:transparent;font-family:var(--mono);font-size:.63rem;color:var(--w3);transition:all var(--transition)}
+.tok-badge svg{flex-shrink:0;opacity:.5}
+.tb-r{display:flex;align-items:center;gap:3px}
+.tb-btn{width:30px;height:30px;border-radius:var(--r-sm);border:1px solid transparent;background:transparent;color:var(--w3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--transition);position:relative}
+.tb-btn:hover{background:var(--w5);border-color:var(--b1);color:var(--w1)}
+.tb-btn[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:-26px;left:50%;transform:translateX(-50%);background:var(--s4);border:1px solid var(--b2);color:var(--w2);font-family:var(--font);font-size:.61rem;padding:2px 7px;border-radius:5px;white-space:nowrap;pointer-events:none;z-index:99}
+
+/* ─────────────────────────────────────────────
+   MESSAGE SCROLL + SCROLL-TO-BOTTOM
+───────────────────────────────────────────── */
+.msgs-wrap{flex:1;overflow-y:auto;overflow-x:hidden;position:relative}
+.msgs-wrap::-webkit-scrollbar{width:3px}
+.msgs-wrap::-webkit-scrollbar-thumb{background:var(--s4);border-radius:2px}
+.msgs-wrap{scrollbar-width:thin;scrollbar-color:var(--s4) transparent}
+
+/* Scroll-to-bottom button */
+.scroll-btn{
+  position:fixed;
+  right:28px;
+  bottom:120px;
+  width:32px;height:32px;
+  border-radius:50%;
+  background:var(--s3);
+  border:1px solid var(--b2);
+  color:var(--w2);
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  z-index:30;
+  opacity:0;pointer-events:none;
+  transform:translateY(6px);
+  transition:opacity .18s,transform .18s,background .12s;
+  box-shadow:0 4px 16px rgba(0,0,0,.5);
+}
+.scroll-btn.visible{opacity:1;pointer-events:all;transform:translateY(0)}
+.scroll-btn:hover{background:var(--s4);border-color:var(--b3);color:var(--w1)}
+
+/* ─────────────────────────────────────────────
+   EMPTY STATE
+───────────────────────────────────────────── */
+#empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%;padding:72px 24px 190px;text-align:center}
+.e-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:var(--r-pill);border:1px solid var(--b2);background:var(--w5);font-family:var(--mono);font-size:.6rem;color:var(--w3);letter-spacing:.1em;margin-bottom:28px;animation:fu .55s ease both}
+.e-dot{width:5px;height:5px;border-radius:50%;background:var(--ok);box-shadow:0 0 4px var(--ok)}
+.e-h{font-family:var(--serif);font-size:clamp(2.4rem,4.8vw,3.8rem);font-weight:400;font-style:italic;line-height:1.06;letter-spacing:-.02em;color:var(--w1);margin-bottom:14px;animation:fu .55s .07s ease both}
+.e-h em{font-style:normal;font-family:var(--font);font-weight:300;color:var(--w2)}
+.e-p{font-size:.88rem;font-weight:300;color:var(--w3);line-height:1.75;max-width:340px;margin-bottom:52px;animation:fu .55s .12s ease both}
+@keyframes fu{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* Cards */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;max-width:740px;width:100%;animation:fu .55s .18s ease both}
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r-xl);padding:15px 13px;text-align:left;cursor:pointer;transition:background .15s,border-color .15s,transform .15s}
+.card:hover{background:var(--s2);border-color:var(--b2);transform:translateY(-2px)}
+.card-ico{font-size:1.1rem;margin-bottom:9px;display:block}
+.card-t{font-size:.76rem;font-weight:600;color:var(--w1);margin-bottom:3px;line-height:1.3}
+.card-d{font-size:.67rem;color:var(--w3);line-height:1.5;font-weight:300}
+
+/* ─────────────────────────────────────────────
+   MESSAGES
+───────────────────────────────────────────── */
+#msgs{display:none;flex-direction:column;max-width:700px;margin:0 auto;padding:28px 24px 210px;width:100%;gap:0}
+.msg{display:flex;gap:11px;align-items:flex-start;padding:15px 0;border-bottom:1px solid var(--b1);animation:fu .28s ease both}
+.msg:last-child{border-bottom:none}
+.msg.user{flex-direction:row-reverse}
+.m-av{width:27px;height:27px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;margin-top:1px;letter-spacing:.02em}
+.msg.user .m-av{background:var(--w1);color:var(--bg)}
+.msg.ai   .m-av{background:var(--s3);border:1px solid var(--b2);color:var(--w3)}
+.m-body{flex:1;min-width:0}
+.m-who{font-size:.64rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--w3);margin-bottom:7px;display:flex;align-items:center;gap:7px}
+.msg.user .m-who{flex-direction:row-reverse;text-align:right}
+
+/* Re-generate & copy actions that appear on AI message hover */
+.m-acts{display:flex;align-items:center;gap:4px;opacity:0;transition:opacity .15s;margin-left:auto}
+.msg:hover .m-acts{opacity:1}
+.m-act-btn{background:none;border:1px solid var(--b1);color:var(--w3);cursor:pointer;border-radius:5px;padding:2px 6px;font-size:.6rem;font-family:var(--font);display:flex;align-items:center;gap:3px;transition:all .12s}
+.m-act-btn:hover{background:var(--w5);border-color:var(--b2);color:var(--w1)}
+
+.bubble{font-size:.88rem;line-height:1.76;word-break:break-word;color:var(--w1)}
+.msg.user .bubble{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r-2xl) var(--r-2xl) var(--r-xs) var(--r-2xl);padding:11px 15px;margin-left:auto;max-width:88%;white-space:pre-wrap;display:inline-block;float:right;width:fit-content}
+.msg.user .m-body::after{content:"";display:table;clear:both}
+
+/* ─────────────────────────────────────────────
+   MARKDOWN
+───────────────────────────────────────────── */
+.mdbody{font-size:.88rem;line-height:1.76;color:var(--w1)}
+.mdbody p{margin:0 0 10px}.mdbody p:last-child{margin:0}
+.mdbody h1,.mdbody h2,.mdbody h3,.mdbody h4{font-family:var(--font);font-weight:600;color:var(--w1);line-height:1.28;margin:18px 0 7px}
+.mdbody h1{font-size:1.2rem}.mdbody h2{font-size:1.05rem}.mdbody h3{font-size:.92rem;color:var(--w2)}.mdbody h4{font-size:.85rem;color:var(--w3)}
+.mdbody strong{font-weight:600;color:var(--w1)}.mdbody em{font-style:italic;color:var(--w2)}
+.mdbody ul,.mdbody ol{padding-left:18px;margin:6px 0 11px}.mdbody li{margin:3px 0;line-height:1.65}
+.mdbody ul li::marker{color:var(--w3)}.mdbody ol li::marker{color:var(--w3);font-weight:600}
+.mdbody blockquote{border-left:2px solid var(--b3);margin:10px 0;padding:7px 14px;color:var(--w2);font-style:italic;background:var(--w6);border-radius:0 var(--r-sm) var(--r-sm) 0}
+.mdbody a{color:var(--w1);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--b3)}.mdbody a:hover{text-decoration-color:var(--w1)}
+.mdbody hr{border:none;border-top:1px solid var(--b1);margin:15px 0}
+.mdbody table{width:100%;border-collapse:collapse;margin:10px 0;font-size:.83rem}
+.mdbody th{background:var(--s2);padding:7px 11px;font-weight:600;border:1px solid var(--b1);color:var(--w1)}
+.mdbody td{padding:6px 11px;border:1px solid var(--b1);color:var(--w2)}
+.mdbody tr:nth-child(even) td{background:var(--w6)}
+.mdbody code:not(pre code){background:var(--s3);border:1px solid var(--b1);color:var(--w1);font-family:var(--mono);font-size:.78rem;padding:1px 5px;border-radius:4px}
+
+/* ─────────────────────────────────────────────
+   CODE BLOCKS — sticky copy header
+───────────────────────────────────────────── */
+.code-wrap{margin:11px 0;border:1px solid var(--b1);border-radius:var(--r-lg);overflow:hidden;background:#0c0c0c}
+.code-wrap:last-child{margin-bottom:0}
+/* sticky within the .msgs-wrap scroll container */
+.code-hdr{position:sticky;top:0;z-index:9;display:flex;align-items:center;justify-content:space-between;padding:7px 13px;background:#111;border-bottom:1px solid var(--b1);border-radius:var(--r-lg) var(--r-lg) 0 0}
+.code-lang{font-family:var(--mono);font-size:.62rem;font-weight:500;color:var(--w3);letter-spacing:.09em;text-transform:uppercase}
+.copy-btn{display:flex;align-items:center;gap:4px;padding:3px 9px;border-radius:var(--r-pill);border:1px solid var(--b1);background:transparent;color:var(--w3);font-family:var(--font);font-size:.62rem;font-weight:500;cursor:pointer;transition:all var(--transition);white-space:nowrap}
+.copy-btn:hover{background:var(--w5);border-color:var(--b2);color:var(--w1)}
+.copy-btn.ok{border-color:rgba(50,213,131,.35);color:var(--ok)}
+.code-wrap pre{margin:0;padding:15px;overflow-x:auto;background:transparent!important;font-family:var(--mono);font-size:.79rem;line-height:1.62}
+.code-wrap pre code{background:transparent!important;border:none!important;padding:0!important;font-size:.79rem}
+.code-wrap pre::-webkit-scrollbar{height:3px}.code-wrap pre::-webkit-scrollbar-thumb{background:var(--s5)}
+
+/* File chips in messages */
+.fchips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.fchip{display:flex;align-items:center;gap:5px;padding:4px 9px;background:var(--s3);border:1px solid var(--b1);border-radius:var(--r-sm);font-size:.72rem;max-width:180px}
+.fchip-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;color:var(--w1)}
+.fchip-sz{font-size:.6rem;color:var(--w3);flex-shrink:0}
+
+/* Typing dots */
+.tdots{display:flex;gap:4px;align-items:center;padding:3px 0}
+.tdots span{width:4px;height:4px;border-radius:50%;background:var(--w3);animation:td 1.4s ease infinite}
+.tdots span:nth-child(2){animation-delay:.16s}.tdots span:nth-child(3){animation-delay:.32s}
+@keyframes td{0%,60%,100%{transform:translateY(0);opacity:.3}30%{transform:translateY(-5px);opacity:1}}
+
+/* Error bubble */
+.err-bubble{background:rgba(255,68,68,.07);border:1px solid rgba(255,68,68,.2);border-radius:var(--r-md);padding:10px 14px;font-size:.84rem;color:#ff8080;display:flex;align-items:flex-start;gap:8px}
+.err-bubble svg{flex-shrink:0;margin-top:1px;opacity:.7}
+
+/* ─────────────────────────────────────────────
+   INPUT DOCK
+───────────────────────────────────────────── */
+.dock{position:absolute;bottom:0;left:0;right:0;padding:0 0 18px;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:6px;z-index:20}
+.dock::before{content:"";position:absolute;bottom:0;left:0;right:0;height:165px;background:linear-gradient(to top,#000 55%,transparent);pointer-events:none;z-index:-1}
+.dock-inner{pointer-events:all;width:100%;max-width:700px;padding:0 18px}
+
+/* Bar */
+.bar{background:var(--s1);border:1px solid var(--b3);border-radius:var(--r-2xl);padding:10px 9px 8px 14px;display:flex;flex-direction:column;gap:7px;box-shadow:0 0 0 1px rgba(255,255,255,.04) inset,0 20px 60px rgba(0,0,0,.85);transition:border-color .2s,box-shadow .2s}
+.bar:focus-within{border-color:rgba(255,255,255,.26);box-shadow:0 0 0 1px rgba(255,255,255,.07) inset,0 20px 60px rgba(0,0,0,.9),0 0 0 3px rgba(255,255,255,.04)}
+
+/* File strip */
+.fstrip{display:flex;flex-wrap:wrap;gap:5px;padding:1px 0 3px}.fstrip:empty{display:none}
+.fp{display:flex;align-items:center;gap:5px;padding:4px 8px;background:var(--s3);border:1px solid var(--b1);border-radius:7px;font-size:.69rem;max-width:165px;animation:fu .18s ease both}
+.fp-ico{font-size:.78rem;flex-shrink:0}.fp-n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--w1);font-weight:500}
+.fp-rm{background:none;border:none;color:var(--w3);cursor:pointer;padding:0 0 0 2px;font-size:.76rem;line-height:1;transition:color var(--transition);flex-shrink:0}.fp-rm:hover{color:var(--w1)}
+
+/* Textarea row */
+.bar-row{display:flex;align-items:flex-end;gap:7px}
+.bar-tx{flex:1;background:transparent;border:none;outline:none;resize:none;color:var(--w1);font-family:var(--font);font-size:.9rem;font-weight:400;line-height:1.6;min-height:22px;max-height:145px;padding:2px 0;overflow-y:auto}
+.bar-tx::placeholder{color:var(--w3)}.bar-tx::-webkit-scrollbar{display:none}
+
+/* Send / Stop button */
+.send-btn{
+  width:33px;height:33px;border-radius:9px;border:none;
+  background:var(--w1);color:var(--bg);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;align-self:flex-end;margin-bottom:1px;
+  transition:background .12s,transform .12s,opacity .12s;
+}
+.send-btn:hover:not(:disabled){background:rgba(255,255,255,.88);transform:scale(1.04)}
+.send-btn:active:not(:disabled){transform:scale(.94)}
+.send-btn:disabled{background:var(--s4);opacity:.45;cursor:not-allowed;transform:none}
+.send-btn.stop-mode{background:var(--s3);border:1px solid var(--b2);color:var(--w2)}
+.send-btn.stop-mode:hover{background:var(--s4);color:var(--w1);transform:scale(1.04)}
+
+/* Action row */
+.bar-acts{display:flex;align-items:center;gap:3px}
+.act{display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:var(--r-pill);border:1px solid var(--b1);background:transparent;color:var(--w3);font-family:var(--font);font-size:.66rem;font-weight:500;cursor:pointer;transition:all var(--transition);white-space:nowrap;flex-shrink:0}
+.act:hover{background:var(--w5);border-color:var(--b2);color:var(--w1)}
+.act.on{background:var(--w5);border-color:var(--b3);color:var(--w1)}
+.act.rec{border-color:rgba(255,68,68,.4);color:var(--err);animation:recpulse .85s ease infinite}
+@keyframes recpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,68,68,.25)}50%{box-shadow:0 0 0 4px rgba(255,68,68,0)}}
+.act svg{flex-shrink:0;opacity:.65}.act:hover svg,.act.on svg,.act.rec svg{opacity:1}
+.act-sep{width:1px;height:13px;background:var(--b1);margin:0 1px;flex-shrink:0}
+.char-c{font-family:var(--mono);font-size:.6rem;color:var(--w3);flex-shrink:0}.char-c.warn{color:var(--warn)}
+
+/* Hint row */
+.dock-hint{pointer-events:all;font-family:var(--mono);font-size:.57rem;color:var(--w3);text-align:center;letter-spacing:.05em}
+.dock-hint kbd{display:inline-block;background:var(--s2);border:1px solid var(--b2);border-radius:3px;padding:0 4px;font-size:.55rem;color:var(--w2);margin:0 2px}
+
+/* ─────────────────────────────────────────────
+   SLIDE PANELS
+───────────────────────────────────────────── */
+.overlay{position:fixed;inset:0;z-index:80;display:flex;justify-content:flex-end;background:rgba(0,0,0,.45);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .18s}
+.overlay.open{opacity:1;pointer-events:all}
+.panel{width:300px;height:100%;background:var(--s1);border-left:1px solid var(--b1);padding:22px 18px;display:flex;flex-direction:column;gap:18px;overflow-y:auto;transform:translateX(18px);transition:transform .22s cubic-bezier(.16,1,.3,1)}
+.overlay.open .panel{transform:translateX(0)}
+.p-hdr{display:flex;align-items:center;justify-content:space-between}
+.p-title{font-size:.84rem;font-weight:600}
+.p-x{width:26px;height:26px;border-radius:6px;border:1px solid var(--b1);background:transparent;color:var(--w3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--transition)}.p-x:hover{background:var(--w5);color:var(--w1)}
+.p-sec{display:flex;flex-direction:column;gap:7px}
+.p-lbl{font-size:.62rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--w3)}
+.p-sel{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r-md);padding:8px 11px;color:var(--w1);font-family:var(--font);font-size:.78rem;cursor:pointer;width:100%;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='9' height='6' viewBox='0 0 9 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L4.5 5L8 1' stroke='rgba(255,255,255,0.3)' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;padding-right:28px;transition:border-color var(--transition)}.p-sel:hover{border-color:var(--b2)}
+.p-row{display:flex;align-items:center;justify-content:space-between;padding:9px 11px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r-md)}
+.p-row-label{font-size:.78rem;color:var(--w1)}
+.sw{position:relative;display:inline-block;width:34px;height:18px;flex-shrink:0}
+.sw input{opacity:0;width:0;height:0;position:absolute}
+.sw-t{position:absolute;inset:0;border-radius:9px;background:var(--s4);border:1px solid var(--b1);cursor:pointer;transition:background .18s,border-color .18s}
+.sw input:checked+.sw-t{background:var(--w1);border-color:var(--w1)}
+.sw-t::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--w3);transition:left .18s,background .18s}
+.sw input:checked+.sw-t::after{left:18px;background:var(--bg)}
+.p-info{font-size:.72rem;color:var(--w3);line-height:1.6;padding:8px 11px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r-md)}
+.p-url{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r-md);padding:9px 11px;font-family:var(--mono);font-size:.66rem;color:var(--w2);word-break:break-all;line-height:1.55}
+.p-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:9px;border-radius:var(--r-md);border:1px solid var(--b2);font-family:var(--font);font-size:.78rem;font-weight:500;cursor:pointer;transition:all var(--transition);width:100%}
+.p-btn-primary{background:var(--w1);color:var(--bg);border-color:var(--w1)}.p-btn-primary:hover{background:rgba(255,255,255,.88)}
+.p-btn-ghost{background:transparent;color:var(--w2)}.p-btn-ghost:hover{background:var(--w5);border-color:var(--b2);color:var(--w1)}
+.p-btn-danger{background:transparent;color:rgba(255,80,60,.7);border-color:rgba(255,80,60,.2)}.p-btn-danger:hover{background:rgba(255,60,40,.08);border-color:rgba(255,60,40,.35);color:#ff6040}
+/* model card list inside settings */
+.model-card{display:flex;align-items:center;gap:9px;padding:9px 11px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r-md);cursor:pointer;transition:all var(--transition)}
+.model-card:hover{border-color:var(--b2);background:var(--s3)}
+.model-card.selected{border-color:var(--w1);background:var(--w6)}
+.model-card-ico{font-size:1rem;flex-shrink:0}
+.model-card-body{flex:1;min-width:0}
+.model-card-name{font-size:.78rem;font-weight:500;color:var(--w1)}
+.model-card-meta{font-size:.63rem;color:var(--w3);margin-top:1px}
+.model-card-check{width:14px;height:14px;border-radius:50%;border:1px solid var(--b2);flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.model-card.selected .model-card-check{background:var(--w1);border-color:var(--w1)}
+
+/* ─────────────────────────────────────────────
+   PASTE TOAST
+───────────────────────────────────────────── */
+.paste-toast{position:fixed;bottom:98px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--s2);border:1px solid var(--b2);border-radius:var(--r-pill);padding:7px 13px;display:flex;align-items:center;gap:7px;font-size:.73rem;color:var(--w2);box-shadow:0 12px 40px rgba(0,0,0,.75);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:90;white-space:nowrap}
+.paste-toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:all}
+.pt-badge{background:rgba(50,213,131,.1);border:1px solid rgba(50,213,131,.25);color:var(--ok);font-family:var(--mono);font-size:.58rem;font-weight:500;padding:1px 7px;border-radius:var(--r-pill)}
+.pt-x{background:none;border:none;color:var(--w3);cursor:pointer;padding:1px 3px;transition:color var(--transition)}.pt-x:hover{color:var(--w1)}
+
+/* ─────────────────────────────────────────────
+   VOICE OVERLAY
+───────────────────────────────────────────── */
+.voice-ov{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.97);opacity:0;pointer-events:none;transition:opacity .3s}
+.voice-ov.open{opacity:1;pointer-events:all}
+.vpanel{display:flex;flex-direction:column;align-items:center;gap:26px}
+.vorb-wrap{position:relative;width:172px;height:172px;display:flex;align-items:center;justify-content:center}
+.vring{position:absolute;border-radius:50%;border:1px solid rgba(255,255,255,.13);width:172px;height:172px;animation:vring-a 2.8s ease-out infinite}
+.vring:nth-child(2){animation-delay:.9s}.vring:nth-child(3){animation-delay:1.8s}
+@keyframes vring-a{0%{transform:scale(.46);opacity:.9;border-color:rgba(255,255,255,.5)}100%{transform:scale(1.7);opacity:0;border-color:transparent}}
+.vorb-core{position:relative;z-index:1;width:104px;height:104px;border-radius:50%;background:radial-gradient(circle at 38% 36%,#fff 0%,#888 60%,#333 100%);box-shadow:0 0 40px rgba(255,255,255,.2),0 0 80px rgba(255,255,255,.08),0 0 0 1px rgba(255,255,255,.1) inset;display:flex;align-items:center;justify-content:center;animation:orb-idle 2.2s ease-in-out infinite;transition:box-shadow .3s}
+@keyframes orb-idle{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.vorb-core.listen{animation:orb-listen .4s ease-in-out infinite alternate}
+@keyframes orb-listen{0%{transform:scale(1);box-shadow:0 0 35px rgba(255,255,255,.18)}100%{transform:scale(1.13);box-shadow:0 0 70px rgba(255,255,255,.5)}}
+.vorb-core.speak{animation:orb-speak .5s ease-in-out infinite alternate}
+@keyframes orb-speak{0%{transform:scale(1);box-shadow:0 0 35px rgba(50,213,131,.18)}100%{transform:scale(1.1);box-shadow:0 0 70px rgba(50,213,131,.48)}}
+.vwave{display:flex;gap:3px;align-items:center}
+.vb{width:3px;border-radius:2px;background:rgba(0,0,0,.7);animation:vb-idle 1.6s ease infinite}
+.vb:nth-child(1){height:6px;animation-delay:0s}.vb:nth-child(2){height:17px;animation-delay:.1s}.vb:nth-child(3){height:10px;animation-delay:.2s}.vb:nth-child(4){height:23px;animation-delay:.3s}.vb:nth-child(5){height:12px;animation-delay:.15s}.vb:nth-child(6){height:17px;animation-delay:.25s}.vb:nth-child(7){height:6px;animation-delay:.05s}
+@keyframes vb-idle{0%,100%{transform:scaleY(.3);opacity:.4}50%{transform:scaleY(1);opacity:.9}}
+.vorb-core.listen .vb{animation:vb-listen .28s ease infinite alternate}
+@keyframes vb-listen{0%{transform:scaleY(.2)}100%{transform:scaleY(1.55)}}
+.vorb-core.listen .vb:nth-child(1){animation-delay:0s}.vorb-core.listen .vb:nth-child(2){animation-delay:.04s}.vorb-core.listen .vb:nth-child(3){animation-delay:.08s}.vorb-core.listen .vb:nth-child(4){animation-delay:.12s}.vorb-core.listen .vb:nth-child(5){animation-delay:.06s}.vorb-core.listen .vb:nth-child(6){animation-delay:.1s}.vorb-core.listen .vb:nth-child(7){animation-delay:.03s}
+.vorb-core.speak .vb{animation:vb-speak .22s ease infinite alternate}
+@keyframes vb-speak{0%{transform:scaleY(.25)}100%{transform:scaleY(1.35)}}
+.v-stat{font-family:var(--serif);font-style:italic;font-size:1.35rem;color:var(--w1);text-align:center}
+.v-sub{font-family:var(--mono);font-size:.66rem;color:var(--w3);text-align:center;margin-top:3px;letter-spacing:.07em}
+.v-tx{font-size:.85rem;color:var(--w2);max-width:360px;text-align:center;line-height:1.65;min-height:20px;font-style:italic}
+.v-ctrls{display:flex;gap:9px;align-items:center}
+.v-end{display:flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-md);border:1px solid var(--b2);background:var(--s2);color:var(--w1);font-family:var(--font);font-size:.76rem;font-weight:500;cursor:pointer;transition:all var(--transition)}.v-end:hover{background:var(--s3);border-color:var(--b3)}
+.v-ctrl{width:38px;height:38px;border-radius:var(--r-md);border:1px solid var(--b1);background:var(--s2);color:var(--w2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--transition)}.v-ctrl:hover{background:var(--s3);border-color:var(--b2);color:var(--w1)}.v-ctrl.muted{border-color:rgba(255,68,68,.35);color:var(--err)}
+
+/* ─────────────────────────────────────────────
+   RESPONSIVE
+───────────────────────────────────────────── */
+@media(max-width:800px){.app{grid-template-columns:1fr}.sidebar{display:none}.cards{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.cards{grid-template-columns:1fr}.act span{display:none}.act{padding:4px 7px}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ════════ SIDEBAR ════════ -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-mark">
+      <svg viewBox="0 0 13 13" fill="none">
+        <polygon points="6.5,1 12,4 12,9 6.5,12 1,9 1,4" stroke="#000" stroke-width="1.3" fill="none"/>
+        <polygon points="6.5,1 12,4 6.5,6.5" fill="#000" opacity=".55"/>
+        <polygon points="6.5,6.5 12,9 6.5,12 1,9" fill="#000" opacity=".35"/>
+      </svg>
+    </div>
+    <span class="sb-name">Operion</span>
+  </div>
+
+  <button class="sb-new" onclick="newChat()">
+    <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 1v9M1 5.5h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    Nouvo konvèsasyon
+  </button>
+
+  <div class="sb-label">Istwa resan</div>
+  <div class="sb-hist" id="sb-hist">
+    <div class="sb-empty" id="hist-empty">Pa gen istwa.<br>Kòmanse yon konvèsasyon.</div>
+  </div>
+
+  <div class="sb-foot">
+    <div class="sb-user">
+      <div class="sb-av">U</div>
+      <div><div class="sb-uname">Ou</div><div class="sb-uplan">Kont lokal</div></div>
+    </div>
+  </div>
+</aside>
+
+<!-- ════════ MAIN ════════ -->
+<main class="main">
+  <div class="topbar">
+    <div class="tb-l">
+      <div class="model-chip" id="model-chip" onclick="openSettings()">
+        <div class="live-dot"></div>
+        <span id="model-label">Llama 3.3 70B</span>
+        <svg width="9" height="6" viewBox="0 0 9 6" fill="none"><path d="M1 1L4.5 5L8 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      </div>
+      <div class="tok-badge" id="tok-badge" style="display:none">
+        <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><circle cx="4.5" cy="4.5" r="3.5" stroke="currentColor" stroke-width="1.1"/><path d="M4.5 2.5v2l1.2 1.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+        <span id="tok-txt">0 tokens</span>
+      </div>
+    </div>
+    <div class="tb-r">
+      <button class="tb-btn" onclick="openShare()" data-tip="Pataje">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="10.5" cy="2.5" r="1.3" stroke="currentColor" stroke-width="1.2"/><circle cx="10.5" cy="10.5" r="1.3" stroke="currentColor" stroke-width="1.2"/><circle cx="2.5" cy="6.5" r="1.3" stroke="currentColor" stroke-width="1.2"/><path d="M3.8 5.9L9.2 3.1M3.8 7.1L9.2 9.9" stroke="currentColor" stroke-width="1.1"/></svg>
+      </button>
+      <button class="tb-btn" onclick="exportChat()" data-tip="Ekspòte JSON">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v8M4 6.5L6.5 9 9 6.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 10h9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      </button>
+      <button class="tb-btn" onclick="openSettings()" data-tip="Paramèt">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="1.8" stroke="currentColor" stroke-width="1.2"/><path d="M6.5 1.5V2.8M6.5 10.2V11.5M11.5 6.5H10.2M2.8 6.5H1.5M10.2 2.8L9.3 3.7M3.7 9.3L2.8 10.2M10.2 10.2L9.3 9.3M3.7 3.7L2.8 2.8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="msgs-wrap" id="msgs-wrap">
+    <div id="empty">
+      <div class="e-badge"><div class="e-dot"></div>GROQ · KREYÒL AYISYEN</div>
+      <h1 class="e-h">Bati nenpòt bagay<br><em>avèk entèlijans atifisyèl</em></h1>
+      <p class="e-p">Di Operion sa ou vle kreye.<br>Kòd, dizayn, esplikasyon — li okipe tout.</p>
+      <div class="cards">
+        <div class="card" onclick="suggest('Kreye yon paj dakèy SaaS responsiv ak seksyon hero anime, kat fonksyon ak tablo pri')">
+          <span class="card-ico">🏗️</span><div class="card-t">Paj Dakèy</div><div class="card-d">Hero anime, fonksyon ak pri</div>
+        </div>
+        <div class="card" onclick="suggest('Ekri yon API REST Node.js ak Express, JWT ak PostgreSQL')">
+          <span class="card-ico">⚡</span><div class="card-t">API REST</div><div class="card-d">Express + JWT + PostgreSQL</div>
+        </div>
+        <div class="card" onclick="suggest('Korije pwoblèm pèfòmans React sa a epi eksplike reranman ki pa nesesè')">
+          <span class="card-ico">🔬</span><div class="card-t">Debyoge</div><div class="card-d">Jwenn kòz rasin yo vit</div>
+        </div>
+        <div class="card" onclick="suggest('Eksplike kijan WebSockets travay ak yon egzanp JavaScript konplè')">
+          <span class="card-ico">📡</span><div class="card-t">Aprann</div><div class="card-d">Analiz apwofondi ak egzanp</div>
+        </div>
+      </div>
+    </div>
+    <div id="msgs"></div>
+  </div>
+
+  <!-- Scroll to bottom -->
+  <button class="scroll-btn" id="scroll-btn" onclick="scrollBot()" title="Desann">
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2.5 4.5L6.5 8.5L10.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+
+  <!-- Input dock -->
+  <div class="dock">
+    <div class="dock-inner">
+      <div class="bar">
+        <div class="fstrip" id="fstrip"></div>
+        <div class="bar-row">
+          <textarea class="bar-tx" id="prompt" placeholder="Mande Operion kreye yon bagay…" rows="1" onkeydown="handleKey(event)" oninput="onTxInput(this)"></textarea>
+          <button class="send-btn" id="send-btn" onclick="handleSendStop()" title="Voye">
+            <svg id="send-ico" width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M7 12V2M3.5 5.5L7 2L10.5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="bar-acts">
+          <button class="act" onclick="trigFile()">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M8.5 5L5 8.5C4.22 9.28 3.06 9.28 2.28 8.5 1.5 7.72 1.5 6.56 2.28 5.78L6.28 1.78C6.78 1.28 7.5 1.28 8 1.78S8.5 3 8 3.5L4 7.5C3.78 7.72 3.44 7.72 3.22 7.5 3 7.28 3 6.94 3.22 6.72L7 3" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/></svg>
+            <span>Fichye</span>
+          </button>
+          <input type="file" id="file-in" multiple accept="*/*" style="display:none" onchange="handleFiles(this.files)">
+
+          <button class="act" id="btn-mic" onclick="toggleMic()">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><rect x="3.5" y="1" width="4" height="5.5" rx="2" stroke="currentColor" stroke-width="1.2"/><path d="M1.5 6C1.5 8.2 3.5 10 5.5 10s4-1.8 4-4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="5.5" y1="10" x2="5.5" y2="11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            <span id="mic-lbl">Vwa</span>
+          </button>
+
+          <button class="act on" onclick="openVoice()">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.2"/><circle cx="5.5" cy="5.5" r="1.8" fill="currentColor" opacity=".45"/></svg>
+            <span>Konvèse</span>
+          </button>
+
+          <button class="act" id="btn-tts" onclick="toggleTTS(this)">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1 4v3h2.2L6.5 9.5V1.5L3.2 4H1Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M8 3.5C8.9 4.2 9.4 4.8 9.4 5.5s-.5 1.3-1.4 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            <span>Lekti</span>
+          </button>
+
+          <div class="act-sep"></div>
+          <span class="char-c" id="char-c">0</span>
+        </div>
+      </div>
+    </div>
+    <div class="dock-hint"><kbd>↵</kbd> voye &nbsp;·&nbsp; <kbd>⇧↵</kbd> liy nouvo</div>
+  </div>
+</main>
+</div>
+
+<!-- Paste toast -->
+<div class="paste-toast" id="paste-toast">
+  <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 1h3L8.5 3.5V9H1V1h2" stroke="#32d583" stroke-width="1.1"/></svg>
+  Kòd detekte &nbsp;<span class="pt-badge" id="pt-lang">JS</span>
+  <button class="pt-x" onclick="dismissPaste()">✕</button>
+</div>
+
+<!-- Settings panel -->
+<div class="overlay" id="ov-settings" onclick="ovBg(event,'ov-settings')">
+  <div class="panel">
+    <div class="p-hdr">
+      <span class="p-title">Paramèt</span>
+      <button class="p-x" onclick="closeSettings()">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <div class="p-sec">
+      <div class="p-lbl">Modèl AI</div>
+      <div id="model-cards"></div>
+    </div>
+
+    <div class="p-sec">
+      <div class="p-lbl">Vwa</div>
+      <div class="p-row">
+        <span class="p-row-label">Lekti otomatik rèpons AI</span>
+        <label class="sw"><input type="checkbox" id="tts-sw" onchange="autoTTS=this.checked;document.getElementById('btn-tts').classList.toggle('on',autoTTS)"><span class="sw-t"></span></label>
+      </div>
+    </div>
+
+    <div class="p-sec">
+      <div class="p-lbl">Kle API Groq</div>
+      <div class="p-info" id="key-status">—</div>
+      <div style="position:relative">
+        <input id="key-input" type="password"
+          placeholder="gsk_…"
+          style="width:100%;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r-md);padding:8px 36px 8px 11px;color:var(--w1);font-family:var(--mono);font-size:.72rem;outline:none;transition:border-color .13s"
+          oninput="onKeyInput(this)"
+          onfocus="this.style.borderColor='var(--b3)'"
+          onblur="this.style.borderColor='var(--b1)'"
+        />
+        <button onclick="toggleKeyVis()" id="key-vis-btn"
+          style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--w3);cursor:pointer;padding:2px;display:flex;align-items:center;transition:color .12s"
+          title="Montre / Kache">
+          <svg id="eye-ico" width="13" height="13" viewBox="0 0 13 13" fill="none"><ellipse cx="6.5" cy="6.5" rx="5" ry="3.5" stroke="currentColor" stroke-width="1.2"/><circle cx="6.5" cy="6.5" r="1.5" fill="currentColor" opacity=".5"/></svg>
+        </button>
+      </div>
+      <div style="display:flex;gap:5px">
+        <button class="p-btn p-btn-primary" style="flex:1" onclick="saveKey()">Anrejistre kle</button>
+        <button class="p-btn p-btn-ghost" style="flex:0 0 auto;padding:9px 11px" onclick="clearKey()" title="Efase kle">
+          <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1.5 1.5l8 8M9.5 1.5l-8 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="p-info" style="font-size:.65rem">
+        Kle ou sove lokalmaan sèlman — li pa janm voye okote.<br>
+        Jwenn kle ou nan <strong>console.groq.com</strong>
+      </div>
+    </div>
+
+    <div class="p-sec">
+      <div class="p-lbl">Done</div>
+      <button class="p-btn p-btn-danger" onclick="clearHistory()">Efase tout istwa</button>
+    </div>
+  </div>
+</div>
+
+<!-- Share panel -->
+<div class="overlay" id="ov-share" onclick="ovBg(event,'ov-share')">
+  <div class="panel">
+    <div class="p-hdr">
+      <span class="p-title">Pataje konvèsasyon</span>
+      <button class="p-x" onclick="closeShare()">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="p-sec">
+      <div class="p-lbl">Lyen pou pataje</div>
+      <div class="p-url" id="share-url-el">Ap kreye lyen…</div>
+      <button class="p-btn p-btn-primary" id="share-copy-btn" onclick="copyShareLink()">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M1.5 8.5V1.5H8.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Kopye lyen
+      </button>
+    </div>
+    <div class="p-sec">
+      <div class="p-lbl">Ekspòte</div>
+      <button class="p-btn p-btn-ghost" onclick="exportChat();closeShare()">Telechaje kòm JSON</button>
+    </div>
+  </div>
+</div>
+
+<!-- Voice overlay -->
+<div class="voice-ov" id="voice-ov">
+  <div class="vpanel">
+    <div class="vorb-wrap">
+      <div class="vring"></div><div class="vring"></div><div class="vring"></div>
+      <div class="vorb-core" id="vorb">
+        <div class="vwave">
+          <div class="vb"></div><div class="vb"></div><div class="vb"></div>
+          <div class="vb"></div><div class="vb"></div><div class="vb"></div><div class="vb"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="v-stat" id="v-stat">Ap koute…</div>
+      <div class="v-sub" id="v-sub">Pale kounye a</div>
+    </div>
+    <div class="v-tx" id="v-tx">&nbsp;</div>
+    <div class="v-ctrls">
+      <button class="v-ctrl" id="v-mute-btn" onclick="toggleVMute()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="4.5" y="1.5" width="5" height="7" rx="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M2 7.5C2 10.5 4.5 12.5 7 12.5s5-2 5-5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="7" y1="12.5" x2="7" y2="14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      </button>
+      <button class="v-end" onclick="closeVoice()">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 6.5C1 3.5 3.5 2 6.5 2S12 3.5 12 6.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><rect x="3.5" y="6.5" width="2.5" height="4" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="7" y="6.5" width="2.5" height="4" rx="1" stroke="currentColor" stroke-width="1.2"/></svg>
+        Fini
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════
+   GROQ CONFIG
+   ↓ Paste your Groq API key below
+════════════════════════════════════════════ */
+const DEFAULT_KEY = "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";
+const GROQ_URL    = "https://api.groq.com/openai/v1/chat/completions";
+
+/* Resolve key: user-saved key takes priority over the hardcoded default */
+function getKey(){
+  return localStorage.getItem("operion_groq_key") || DEFAULT_KEY;
+}
+
+/* Available Groq models */
+const MODELS = [
+  { id:"llama-3.3-70b-versatile",       label:"Llama 3.3 70B",       meta:"Ekselan · Meta",         ico:"🦙" },
+  { id:"llama-3.1-8b-instant",          label:"Llama 3.1 8B Instant", meta:"Trè vit · Meta",         ico:"⚡" },
+  { id:"deepseek-r1-distill-llama-70b", label:"DeepSeek R1 70B",      meta:"Rezonman · DeepSeek",    ico:"🔎" },
+  { id:"mixtral-8x7b-32768",            label:"Mixtral 8×7B",         meta:"Kontèks long · Mistral", ico:"🌀" },
+  { id:"gemma2-9b-it",                  label:"Gemma 2 9B",           meta:"Léger · Google",         ico:"♊" },
+  { id:"llama3-groq-70b-8192-tool-use-preview", label:"Llama 3 70B Tool", meta:"Zouti · Groq",      ico:"🔧" },
+];
+
+/* ════════════════════════════════════════════
+   SYSTEM PROMPT
+════════════════════════════════════════════ */
+const SYS = `Ou se Operion, yon asistan ekspè nivo wo.
+Ou TOUJOU reponn an kreyòl ayisyen, avèk presizyon, klète ak ekspètiz pwofesyonèl.
+Ou dirèk, konsiz epi teknik lè sa nesesè.
+Ou fòmate kòd ak markdown.
+Non ou se Operion. Ou pa janm prezante tèt ou lòt jan.`;
+
+/* ════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════ */
+const SK = "operion_v3";
+let history    = [{ role:"system", content:SYS }];
+let sessions   = [];
+let curSid     = null;
+let curModel   = MODELS[0].id;
+let streaming  = false;
+let stopFlag   = false;
+let autoTTS    = false;
+let pendingFiles = [];
+let totalTokens  = 0;
+let sttOn = false, sttRecog = null;
+let voiceOn = false, vMuted = false, vRecog = null;
+
+/* ════════════════════════════════════════════
+   DOM
+════════════════════════════════════════════ */
+const $  = id => document.getElementById(id);
+const emptyEl  = $("empty");
+const msgsEl   = $("msgs");
+const wrapEl   = $("msgs-wrap");
+const promptEl = $("prompt");
+const sendEl   = $("send-btn");
+const sendIco  = $("send-ico");
+const charEl   = $("char-c");
+const fstripEl = $("fstrip");
+
+/* ════════════════════════════════════════════
+   GROQ STREAMING
+════════════════════════════════════════════ */
+async function callOR(messages, onToken, signal){
+  const key = getKey();
+  if (!key || key === "PASTE_YOUR_GROQ_KEY_HERE"){
+    throw new Error("Kle API Groq manke. Ale nan Paramèt → API pou ajoute kle ou a.");
+  }
+  const resp = await fetch(GROQ_URL, {
+    method: "POST",
+    signal,
+    headers: {
+      "Content-Type":  "application/json",
+      "Authorization": `Bearer ${key}`,
+    },
+    body: JSON.stringify({
+      model: curModel,
+      messages,
+      stream: true,
+      temperature: 0.7,
+    }),
+  });
+
+  if (!resp.ok){
+    const errJson = await resp.json().catch(()=>({}));
+    const msg = errJson?.error?.message || `HTTP ${resp.status}`;
+    throw new Error(msg);
+  }
+
+  const reader  = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = "", total = 0;
+
+  while (true){
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    const lines = buf.split("\n");
+    buf = lines.pop(); // keep incomplete line
+
+    for (const line of lines){
+      if (!line.startsWith("data: ")) continue;
+      const data = line.slice(6).trim();
+      if (data === "[DONE]") {
+        updateTokenBadge(total);
+        return;
+      }
+      try {
+        const json = JSON.parse(data);
+        const tok  = json.choices?.[0]?.delta?.content ?? "";
+        // Accumulate usage if provided
+        if (json.usage?.total_tokens) total = json.usage.total_tokens;
+        else if (tok) total += Math.ceil(tok.length / 4);
+        if (tok) onToken(tok);
+      } catch(_) {}
+    }
+  }
+  updateTokenBadge(total);
+}
+
+function updateTokenBadge(n){
+  totalTokens += n;
+  const badge = $("tok-badge");
+  badge.style.display = "flex";
+  $("tok-txt").textContent = totalTokens.toLocaleString() + " tokens · Groq";
+}
+
+/* ════════════════════════════════════════════
+   PERSISTENCE — localStorage only (no server needed)
+════════════════════════════════════════════ */
+function loadSessions(){
+  try { const r = localStorage.getItem(SK); if(r) sessions = JSON.parse(r); } catch(e){}
+  renderSB();
+}
+
+function saveSessions(){
+  try { localStorage.setItem(SK, JSON.stringify(sessions)); } catch(e){}
+}
+
+async function saveSession(){
+  if (!curSid || history.length <= 1) return;
+  const msgs  = history.slice(1);
+  const title = msgs.find(m=>m.role==="user")?.content?.slice(0,55) || "Konvèsasyon";
+  const obj   = { id:curSid, title, date:Date.now(), messages:msgs, model:curModel };
+  const i     = sessions.findIndex(s=>s.id===curSid);
+  if (i >= 0) sessions[i] = obj; else sessions.push(obj);
+  saveSessions(); renderSB();
+}
+
+function loadSession(id){
+  if (streaming) return;
+  saveSession();
+  const s = sessions.find(s=>s.id===id);
+  if (!s) return;
+  curSid = id; curModel = s.model || MODELS[0].id;
+  history = [{ role:"system", content:SYS }, ...s.messages];
+  updateModelUI();
+  msgsEl.innerHTML = "";
+  showMsgs();
+  s.messages.forEach(m => addMsg(m.role==="user"?"user":"ai", m.content));
+  renderSB();
+}
+
+function delSession(id, e){
+  e.stopPropagation();
+  sessions = sessions.filter(s=>s.id!==id);
+  saveSessions();
+  if (curSid===id) newChat(); else renderSB();
+}
+
+function clearHistory(){ sessions=[]; saveSessions(); newChat(); closeSettings(); }
+
+function renderSB(){
+  const hist = $("sb-hist");
+  hist.querySelectorAll(".hist-row").forEach(r=>r.remove());
+  const empty = $("hist-empty");
+  if (!sessions.length){ empty.style.display=""; return; }
+  empty.style.display = "none";
+  sessions.slice().reverse().forEach(s=>{
+    const d = document.createElement("div");
+    d.className = "hist-row" + (s.id===curSid?" active":"");
+    d.innerHTML = `
+      <div class="hist-ico"><svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1 2c0-.5.4-1 1-1h7c.6 0 1 .5 1 1v5c0 .6-.4 1-1 1H3L1 10V2Z" stroke="currentColor" stroke-width="1.1"/></svg></div>
+      <div class="hist-body"><div class="hist-title">${esc(s.title)}</div><div class="hist-date">${fmtD(s.date)}</div></div>
+      <button class="hist-del" onclick="delSession('${s.id}',event)">✕</button>`;
+    d.onclick = e => { if(e.target.closest(".hist-del")) return; loadSession(s.id); };
+    hist.appendChild(d);
+  });
+}
+
+function esc(s){ const d=document.createElement("div");d.textContent=s;return d.innerHTML; }
+function fmtD(ts){ return new Date(ts).toLocaleDateString("fr",{month:"short",day:"numeric"}); }
+
+/* ════════════════════════════════════════════
+   MODEL UI
+════════════════════════════════════════════ */
+function buildModelCards(){
+  const wrap = $("model-cards");
+  wrap.style.display = "flex";
+  wrap.style.flexDirection = "column";
+  wrap.style.gap = "5px";
+  wrap.innerHTML = "";
+  MODELS.forEach(m=>{
+    const d = document.createElement("div");
+    d.className = "model-card" + (m.id===curModel?" selected":"");
+    d.innerHTML = `
+      <div class="model-card-ico">${m.ico}</div>
+      <div class="model-card-body">
+        <div class="model-card-name">${m.label}</div>
+        <div class="model-card-meta">${m.meta}</div>
+      </div>
+      <div class="model-card-check">${m.id===curModel?`<svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 4L3.5 6.5L7 2" stroke="#000" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`:""}
+      </div>`;
+    d.onclick = () => { curModel = m.id; updateModelUI(); buildModelCards(); };
+    wrap.appendChild(d);
+  });
+}
+
+function updateModelUI(){
+  const m = MODELS.find(x=>x.id===curModel) || MODELS[0];
+  $("model-label").textContent = m.label;
+}
+
+/* ════════════════════════════════════════════
+   UTILS
+════════════════════════════════════════════ */
+function autoResize(el){ el.style.height="auto"; el.style.height=Math.min(el.scrollHeight,145)+"px"; }
+
+function scrollBot(){ wrapEl.scrollTo({ top:wrapEl.scrollHeight, behavior:"smooth" }); }
+
+// Scroll-to-bottom button visibility
+wrapEl.addEventListener("scroll", ()=>{
+  const btn = $("scroll-btn");
+  const atBottom = wrapEl.scrollHeight - wrapEl.scrollTop - wrapEl.clientHeight < 80;
+  btn.classList.toggle("visible", !atBottom && msgsEl.children.length > 0);
+});
+
+function showMsgs(){
+  emptyEl.style.display = "none";
+  msgsEl.style.display  = "flex";
+  msgsEl.style.flexDirection = "column";
+  if (!curSid) curSid = "s"+Date.now()+Math.random().toString(36).slice(2,6);
+}
+function onTxInput(el){ autoResize(el); const n=el.value.length; charEl.textContent=n; charEl.classList.toggle("warn",n>1800); }
+function handleKey(e){ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); send(); } }
+function suggest(t){ promptEl.value=t; onTxInput(promptEl); promptEl.focus(); }
+
+function newChat(){
+  saveSession();
+  curSid   = "s"+Date.now()+Math.random().toString(36).slice(2,6);
+  history  = [{ role:"system", content:SYS }];
+  msgsEl.innerHTML   = "";
+  msgsEl.style.display  = "none";
+  emptyEl.style.display = "flex";
+  pendingFiles = []; renderStrip();
+  promptEl.value = ""; onTxInput(promptEl);
+  $("scroll-btn").classList.remove("visible");
+  renderSB();
+}
+
+/* ════════════════════════════════════════════
+   SEND / STOP
+════════════════════════════════════════════ */
+let abortCtrl = null;
+
+function handleSendStop(){
+  if (streaming){ stopGeneration(); } else { send(); }
+}
+
+function stopGeneration(){
+  stopFlag = true;
+  abortCtrl?.abort();
+}
+
+function setSendMode(mode){ // "send"|"stop"|"disabled"
+  sendEl.classList.toggle("stop-mode", mode==="stop");
+  sendEl.disabled = mode === "disabled";
+  if (mode === "stop"){
+    sendIco.innerHTML = `<rect x="3.5" y="3.5" width="7" height="7" rx="1.5" fill="currentColor"/>`;
+  } else {
+    sendIco.innerHTML = `<path d="M7 12V2M3.5 5.5L7 2L10.5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`;
+  }
+}
+
+async function send(){
+  const text = promptEl.value.trim();
+  if ((!text && !pendingFiles.length) || streaming) return;
+  showMsgs();
+  const snap = [...pendingFiles], disp = text || "[Fichye ajoute]";
+  promptEl.value = ""; pendingFiles = []; renderStrip(); onTxInput(promptEl);
+  streaming = true; stopFlag = false;
+  setSendMode("stop");
+
+  history.push({ role:"user", content: text + buildCtx() });
+  addMsg("user", disp, false, snap);
+  const bubble = addMsg("ai","",true);
+
+  abortCtrl = new AbortController();
+  try {
+    let full = "";
+    bubble.innerHTML = "";
+    await callOR(history, tok => {
+      if (stopFlag) { abortCtrl.abort(); return; }
+      full += tok;
+      bubble.innerHTML = "";
+      bubble.appendChild(mkMd(full));
+      // Only auto-scroll if user is near bottom
+      const nearBot = wrapEl.scrollHeight - wrapEl.scrollTop - wrapEl.clientHeight < 120;
+      if (nearBot) scrollBot();
+    }, abortCtrl.signal);
+
+    if (!full) full = "Pa gen repons reçu.";
+    bubble.innerHTML = "";
+    bubble.appendChild(mkMd(full));
+    history.push({ role:"assistant", content:full });
+    await saveSession();
+    if (autoTTS) speak(full);
+
+  } catch(err){
+    if (err.name === "AbortError" || stopFlag){
+      // Stopped by user — keep partial response
+      const partial = bubble.querySelector(".mdbody");
+      if (!partial || !partial.textContent.trim()){
+        bubble.innerHTML = `<span style="color:var(--w3);font-size:.82rem;font-style:italic">Rèpons kanpe.</span>`;
+      }
+    } else {
+      bubble.innerHTML = "";
+      bubble.appendChild(mkError(err.message));
+    }
+    console.error(err);
+  } finally {
+    streaming = false; abortCtrl = null;
+    setSendMode("send");
+    promptEl.focus();
+  }
+}
+
+/* ════════════════════════════════════════════
+   MARKDOWN + CODE
+════════════════════════════════════════════ */
+function setupMarked(){
+  marked.setOptions({ breaks:true, gfm:true });
+  const R = new marked.Renderer();
+  R.code = (code, lang) => {
+    const vl = lang && hljs.getLanguage(lang) ? lang : "";
+    const hi = vl ? hljs.highlight(code,{language:vl}).value : hljs.highlightAuto(code).value;
+    const id = "c"+Math.random().toString(36).slice(2,8);
+    return `<div class="code-wrap"><div class="code-hdr"><span class="code-lang">${(lang||"kòd").toUpperCase()}</span><button class="copy-btn" onclick="cpCode('${id}',this)"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.1"/><path d="M1 7V1h6" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg> Kopye</button></div><pre><code id="${id}" class="hljs">${hi}</code></pre></div>`;
+  };
+  marked.use({ renderer:R });
+}
+
+function cpCode(id, btn){
+  navigator.clipboard.writeText($(id)?.innerText||"").then(()=>{
+    btn.classList.add("ok");
+    btn.innerHTML = `<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg> Kopye!`;
+    setTimeout(()=>{ btn.classList.remove("ok"); btn.innerHTML=`<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.1"/><path d="M1 7V1h6" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg> Kopye`; },2200);
+  });
+}
+
+function mkMd(text){
+  const d = document.createElement("div"); d.className="mdbody";
+  d.innerHTML = marked.parse(text); return d;
+}
+
+function mkError(msg){
+  const d = document.createElement("div"); d.className="err-bubble";
+  d.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 4.5V7.5M7 9.5V10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><div><strong>Erè:</strong> ${esc(msg)}</div>`;
+  return d;
+}
+
+/* ════════════════════════════════════════════
+   RENDER MESSAGE
+════════════════════════════════════════════ */
+function addMsg(role, content, typing=false, files=[]){
+  const isU = role==="user";
+  const w = document.createElement("div"); w.className=`msg ${role}`;
+  const av = document.createElement("div"); av.className="m-av"; av.textContent=isU?"U":"O";
+  const body = document.createElement("div"); body.className="m-body";
+  const who = document.createElement("div"); who.className="m-who";
+
+  if (!isU){
+    // add copy-response and regenerate buttons to AI messages
+    who.innerHTML = `Operion<div class="m-acts">
+      <button class="m-act-btn" onclick="copyResponse(this)" title="Kopye rèpons">
+        <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><rect x="2.5" y="2.5" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.1"/><path d="M1 6.5V1H6.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg> Kopye
+      </button>
+    </div>`;
+  } else {
+    who.textContent = "Ou";
+  }
+
+  const bubble = document.createElement("div"); bubble.className="bubble";
+
+  if (typing){
+    bubble.innerHTML = `<div class="tdots"><span></span><span></span><span></span></div>`;
+  } else if (isU){
+    if (files.length){
+      const fc=document.createElement("div"); fc.className="fchips";
+      files.forEach(f=>{ const c=document.createElement("div"); c.className="fchip"; c.innerHTML=`${fEmo(f.name)} <span class="fchip-name">${f.name}</span><span class="fchip-sz">${szFmt(f.size)}</span>`; fc.appendChild(c); });
+      bubble.appendChild(fc);
+    }
+    const t=document.createElement("span"); t.style.whiteSpace="pre-wrap"; t.textContent=content; bubble.appendChild(t);
+  } else {
+    bubble.appendChild(mkMd(content));
+  }
+
+  body.appendChild(who); body.appendChild(bubble);
+  if (!isU){ w.appendChild(av); w.appendChild(body); }
+  else { w.appendChild(body); w.appendChild(av); }
+  msgsEl.appendChild(w);
+  const nearBot = wrapEl.scrollHeight - wrapEl.scrollTop - wrapEl.clientHeight < 120;
+  if (nearBot) scrollBot();
+  return bubble;
+}
+
+function copyResponse(btn){
+  const bubble = btn.closest(".msg").querySelector(".bubble");
+  const text = bubble?.innerText || "";
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent = "Kopye ✓";
+    setTimeout(()=>{ btn.innerHTML=`<svg width="9" height="9" viewBox="0 0 9 9" fill="none"><rect x="2.5" y="2.5" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.1"/><path d="M1 6.5V1H6.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg> Kopye`; },2000);
+  });
+}
+
+/* ════════════════════════════════════════════
+   FILE UPLOAD
+════════════════════════════════════════════ */
+function trigFile(){ $("file-in").click(); }
+function szFmt(b){ return b<1024?b+"B":b<1e6?(b/1024).toFixed(1)+"KB":(b/1e6).toFixed(1)+"MB"; }
+function fEmo(n){ const e=n.split(".").pop().toLowerCase(),m={js:"🟨",ts:"🔷",py:"🐍",html:"🌐",css:"🎨",json:"📋",md:"📝",txt:"📄",pdf:"📕",png:"🖼",jpg:"🖼",jpeg:"🖼",gif:"🖼",svg:"🎭",zip:"📦",csv:"📊"}; return m[e]||"📎"; }
+
+async function handleFiles(fl){
+  for(const f of fl){
+    const r=new FileReader();
+    r.onload=e=>{pendingFiles.push({name:f.name,size:f.size,type:f.type,content:e.target.result});renderStrip();};
+    if(f.type.startsWith("text/")||/\.(js|ts|py|html|css|json|md|txt|csv|xml|yaml|yml|sh|sql)$/i.test(f.name)) r.readAsText(f);
+    else r.readAsDataURL(f);
+  }
+  $("file-in").value="";
+}
+
+function renderStrip(){
+  fstripEl.innerHTML="";
+  pendingFiles.forEach((f,i)=>{
+    const c=document.createElement("div"); c.className="fp";
+    c.innerHTML=`<span class="fp-ico">${fEmo(f.name)}</span><span class="fp-n">${f.name}</span><span style="font-size:.59rem;color:var(--w3)">${szFmt(f.size)}</span><button class="fp-rm" onclick="rmF(${i})">✕</button>`;
+    fstripEl.appendChild(c);
+  });
+}
+function rmF(i){ pendingFiles.splice(i,1); renderStrip(); }
+function buildCtx(){
+  if(!pendingFiles.length) return "";
+  return "\n\n---\n**Fichye ki ajoute:**\n"+pendingFiles.map(f=>{
+    const t=typeof f.content==="string"&&!f.content.startsWith("data:");
+    return `\n📎 **${f.name}** (${szFmt(f.size)})\n`+(t?`\`\`\`\n${f.content.slice(0,8000)}\n\`\`\``:"[Fichye binè]");
+  }).join("\n");
+}
+
+/* ════════════════════════════════════════════
+   PASTE DETECTION
+════════════════════════════════════════════ */
+const ptEl=$("paste-toast"), ptLangEl=$("pt-lang");
+let ptTimer;
+const PATS=[
+  {p:/function\s+\w+\s*\(|const\s+\w+\s*=|let\s+\w+\s*=|=>/,l:"JS"},
+  {p:/<\w+[\s>]|<\/\w+>/,l:"HTML"},
+  {p:/def\s+\w+\s*\(|import\s+\w+|print\s*\(/,l:"Python"},
+  {p:/SELECT\s+|FROM\s+|WHERE\s+/i,l:"SQL"},
+  {p:/\.[\w-]+\s*\{|@media/,l:"CSS"},
+  {p:/^\s*\{[\s\S]*"[\w]+":/m,l:"JSON"},
+];
+promptEl.addEventListener("paste",()=>{
+  setTimeout(()=>{
+    const t=promptEl.value;
+    if(t.length<30||t.split("\n").length<3) return;
+    let d="KÒD"; for(const{p,l}of PATS){if(p.test(t)){d=l;break;}}
+    ptLangEl.textContent=d; ptEl.classList.add("show");
+    clearTimeout(ptTimer); ptTimer=setTimeout(()=>ptEl.classList.remove("show"),4000);
+  },0);
+});
+function dismissPaste(){ ptEl.classList.remove("show"); clearTimeout(ptTimer); }
+
+/* ════════════════════════════════════════════
+   TTS
+════════════════════════════════════════════ */
+function toggleTTS(btn){ autoTTS=!autoTTS; btn.classList.toggle("on",autoTTS); $("tts-sw").checked=autoTTS; }
+function speak(text){
+  speechSynthesis.cancel();
+  const clean=text.replace(/```[\s\S]*?```/g,"kòd.").replace(/[#*_`>~]/g,"").slice(0,1400);
+  const u=new SpeechSynthesisUtterance(clean);
+  u.lang="fr-FR"; u.rate=1.04;
+  const vv=speechSynthesis.getVoices(); const fr=vv.find(v=>v.lang.startsWith("fr")); if(fr) u.voice=fr;
+  speechSynthesis.speak(u);
+}
+
+/* ════════════════════════════════════════════
+   STT
+════════════════════════════════════════════ */
+function toggleMic(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ alert("Rekonesans vwa pa sipòte nan navigatè sa a."); return; }
+  if(sttOn){ sttRecog?.stop(); return; }
+  sttRecog=new SR(); sttRecog.lang="fr-FR"; sttRecog.continuous=false; sttRecog.interimResults=true;
+  sttRecog.onstart=()=>{ sttOn=true; $("btn-mic").classList.add("rec"); $("mic-lbl").textContent="Kanpe"; };
+  sttRecog.onresult=e=>{ let f="",t=""; for(const r of e.results){if(r.isFinal)f+=r[0].transcript;else t+=r[0].transcript;} promptEl.value=f||t; onTxInput(promptEl); };
+  sttRecog.onend=()=>{ sttOn=false; $("btn-mic").classList.remove("rec"); $("mic-lbl").textContent="Vwa"; };
+  sttRecog.onerror=()=>sttRecog.onend();
+  sttRecog.start();
+}
+
+/* ════════════════════════════════════════════
+   VOICE PANEL
+════════════════════════════════════════════ */
+function openVoice(){ voiceOn=true; vMuted=false; $("voice-ov").classList.add("open"); showMsgs(); setOrb("listen"); listenLoop(); }
+function closeVoice(){ voiceOn=false; $("voice-ov").classList.remove("open"); vRecog?.stop(); vRecog=null; speechSynthesis.cancel(); setOrb("idle"); }
+function setOrb(s){
+  const o=$("vorb"); o.classList.remove("listen","speak");
+  if(s==="listen"){ o.classList.add("listen"); $("v-stat").textContent="Ap koute…"; $("v-sub").textContent="Pale kounye a"; }
+  else if(s==="speak"){ o.classList.add("speak"); $("v-stat").textContent="Operion ap reponn…"; $("v-sub").textContent=""; }
+  else { $("v-stat").textContent="Poze…"; $("v-sub").textContent=""; }
+}
+function toggleVMute(){ vMuted=!vMuted; $("v-mute-btn").classList.toggle("muted",vMuted); if(vMuted){vRecog?.stop();setOrb("idle");}else{setOrb("listen");listenLoop();} }
+
+function listenLoop(){
+  if(!voiceOn||vMuted) return;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ $("v-stat").textContent="Pa sipòte"; return; }
+  vRecog=new SR(); vRecog.lang="fr-FR"; vRecog.continuous=false; vRecog.interimResults=true;
+  vRecog.onresult=e=>{ let f="",t=""; for(const r of e.results){if(r.isFinal)f+=r[0].transcript;else t+=r[0].transcript;} $("v-tx").textContent=f||t; };
+  vRecog.onend=async()=>{
+    if(!voiceOn||vMuted) return;
+    const said=($("v-tx").textContent||"").trim();
+    $("v-tx").textContent="\u00a0";
+    if(!said){ listenLoop(); return; }
+    setOrb("speak"); await voiceSend(said);
+  };
+  vRecog.onerror=e=>{ console.warn(e.error); if(voiceOn&&!vMuted) setTimeout(listenLoop,1000); };
+  vRecog.start();
+}
+
+async function voiceSend(text){
+  history.push({role:"user",content:text}); addMsg("user",text);
+  const bubble=addMsg("ai","",true);
+  try{
+    let full=""; bubble.innerHTML="";
+    await callOR(history, tok=>{ full+=tok; bubble.innerHTML=""; bubble.appendChild(mkMd(full)); scrollBot(); });
+    if(!full) full="Eskize mwen, mwen pa konprann.";
+    bubble.innerHTML=""; bubble.appendChild(mkMd(full));
+    history.push({role:"assistant",content:full});
+    await saveSession();
+    const u=new SpeechSynthesisUtterance(full.replace(/```[\s\S]*?```/g,"kòd.").replace(/[#*_`>~]/g,"").slice(0,1400));
+    u.lang="fr-FR"; u.rate=1.04;
+    const vv=speechSynthesis.getVoices(); const fr=vv.find(v=>v.lang.startsWith("fr")); if(fr) u.voice=fr;
+    u.onend=()=>{ if(voiceOn&&!vMuted){ setTimeout(()=>{setOrb("listen");listenLoop();},380); } };
+    speechSynthesis.speak(u); setOrb("speak");
+  } catch(e){ bubble.innerHTML=""; bubble.appendChild(mkError(e.message)); }
+}
+
+/* ════════════════════════════════════════════
+   PANELS
+════════════════════════════════════════════ */
+/* Key management */
+function getKeyStatus(){
+  const stored = localStorage.getItem("operion_groq_key");
+  const def    = DEFAULT_KEY;
+  if (stored && stored.startsWith("gsk_")){
+    return { label:"✓ Kle pèsonèl aktif", color:"var(--ok)", key:stored };
+  } else if (def && def !== "PASTE_YOUR_GROQ_KEY_HERE"){
+    return { label:"✓ Kle pa-defo aktif (hardcoded)", color:"var(--ok)", key:def };
+  }
+  return { label:"⚠ Okenn kle — ajoute youn anba a", color:"var(--warn)", key:"" };
+}
+
+function onKeyInput(el){
+  const v = el.value.trim();
+  const ok = v.startsWith("gsk_") && v.length > 20;
+  el.style.borderColor = v.length === 0 ? "var(--b1)" : ok ? "rgba(50,213,131,.4)" : "rgba(255,128,64,.4)";
+}
+
+function toggleKeyVis(){
+  const inp = $("key-input");
+  const showing = inp.type === "text";
+  inp.type = showing ? "password" : "text";
+  $("eye-ico").style.opacity = showing ? "1" : "0.45";
+}
+
+function saveKey(){
+  const v = $("key-input").value.trim();
+  if (!v){ alert("Tanpri antre yon kle Groq valid (kòmanse ak gsk_)"); return; }
+  if (!v.startsWith("gsk_")){ alert("Kle Groq dwe kòmanse ak gsk_"); return; }
+  localStorage.setItem("operion_groq_key", v);
+  refreshKeyPanel();
+  $("key-input").value = "";
+  onKeyInput($("key-input"));
+  // Flash success
+  const s = $("key-status");
+  s.textContent = "✓ Kle anrejistre avèk siksè!";
+  s.style.color = "var(--ok)";
+  setTimeout(refreshKeyPanel, 2400);
+}
+
+function clearKey(){
+  if (!confirm("Efase kle pèsonèl ou a?")) return;
+  localStorage.removeItem("operion_groq_key");
+  refreshKeyPanel();
+}
+
+function refreshKeyPanel(){
+  const st = getKeyStatus();
+  const el = $("key-status");
+  if (!el) return;
+  el.textContent  = st.label;
+  el.style.color  = st.color;
+  el.style.fontWeight = "500";
+}
+
+function openSettings(){ buildModelCards(); refreshKeyPanel(); $("ov-settings").classList.add("open"); }
+function closeSettings(){ $("ov-settings").classList.remove("open"); }
+function openShare(){
+  $("ov-share").classList.add("open");
+  const url=window.location.href.split("?")[0]+"?s="+encodeURIComponent(JSON.stringify({sid:curSid,model:curModel,msgs:history.slice(1,4).map(m=>({r:m.role[0],c:m.content.slice(0,100)}))})).slice(0,500);
+  $("share-url-el").textContent=url;
+}
+function closeShare(){ $("ov-share").classList.remove("open"); }
+function ovBg(e,id){ if(e.target.id===id) $(id).classList.remove("open"); }
+
+async function copyShareLink(){
+  await navigator.clipboard.writeText($("share-url-el").textContent);
+  const btn=$("share-copy-btn"); const orig=btn.innerHTML;
+  btn.innerHTML=`<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Kopye ✓`;
+  setTimeout(()=>btn.innerHTML=orig, 2200);
+}
+
+function exportChat(){
+  const d=document.createElement("a");
+  d.href=URL.createObjectURL(new Blob([JSON.stringify({session:curSid,model:curModel,messages:history.slice(1)},null,2)],{type:"application/json"}));
+  d.download=`operion-${curSid||"chat"}.json`; d.click();
+}
+
+/* ════════════════════════════════════════════
+   BOOT
+════════════════════════════════════════════ */
+setupMarked();
+loadSessions();
+newChat();
+</script>
+</body>
+</html>
