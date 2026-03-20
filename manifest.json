@@ -1,6 +1,7 @@
 {
-  "name": "Generic App Name",
-  "short_name": "App",
+  "name": "Operion",
+  "short_name": "Operion",
+  "description": "My awesome PWA",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -9,13 +10,14 @@
     {
       "src": "icon.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
-
