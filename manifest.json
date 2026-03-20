@@ -1,9 +1,8 @@
 {
-  "name": "My Desktop App",
-  "short_name": "MyApp",
-  "description": "A fully functional web application built on GitHub.",
-  "start_url": "./index.html",
-  "scope": ".",
+  "name": "Operion",
+  "short_name": "Operion",
+  "description": "My custom mobile application hosted on GitHub.",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#007bff",
@@ -11,14 +10,12 @@
     {
       "src": "icon.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
       "src": "icon.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     }
   ]
 }
