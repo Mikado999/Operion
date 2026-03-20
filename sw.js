@@ -1,40 +1,20 @@
-const CACHE_NAME = 'app-v1'; // Change this v1 to v2 when you update!
-const ASSETS = [
-  'index.html',
-  'icon.png',
-  'manifest.json'
-];
+// Change this version number to trigger an update!
+const VERSION = 'v1.1';
 
-// Install: Save files to phone memory
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-  );
-  self.skipWaiting(); // Forces the new service worker to take over immediately
+  self.skipWaiting();
 });
 
-// Activate: Clean up old versions
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-      );
-    })
-  );
+  event.waitUntil(clients.claim());
 });
 
-// Fetch: Serve from cache so it works offline
+// Chrome REQUIRES a fetch handler to show the install button
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
+  // We don't have to do anything here, just having the listener is enough
 });
 
-// This allows the 'Update' button in index.html to 
-// tell the new service worker to take over immediately.
+// Support for the skipWaiting message
 self.addEventListener('message', (event) => {
   if (event.data.action === 'skipWaiting') {
     self.skipWaiting();
