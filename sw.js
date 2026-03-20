@@ -33,3 +33,10 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
+// This allows the 'Update' button in index.html to 
+// tell the new service worker to take over immediately.
+self.addEventListener('message', (event) => {
+  if (event.data.action === 'skipWaiting') {
+    self.skipWaiting();
+  }
+});
