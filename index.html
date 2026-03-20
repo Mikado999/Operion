@@ -1102,60 +1102,7 @@ function applyTheme(id){
   buildThemeGrid();
 }
 
-/* ════════════════════════════════════════════
-           FOR THE APP UPDATE NOTIFICATION 
-════════════════════════════════════════════ */
 
-   let newWorker;
-
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').then(reg => {
-    reg.addEventListener('updatefound', () => {
-      newWorker = reg.installing;
-      newWorker.addEventListener('statechange', () => {
-        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          // This is where you'd show a "New Update! Tap to reload" toast/button
-          if(confirm("New version available! Update now?")) {
-            window.location.reload();
-          }
-        }
-      });
-    });
-  });
-}
-   // --- UNIVERSAL PWA LOADER & UPDATER ---
-
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').then(reg => {
-      
-      // Check for updates every time the app is opened
-      reg.addEventListener('updatefound', () => {
-        const newWorker = reg.installing;
-        
-        newWorker.addEventListener('statechange', () => {
-          // If a new service worker is installed and ready
-          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            
-            // Create a simple update banner/alert
-            const updateNotify = confirm("A new version is available! Refresh now?");
-            if (updateNotify) {
-              // This tells the new SW to take control and reloads the page
-              newWorker.postMessage({ action: 'skipWaiting' });
-              window.location.reload();
-            }
-          }
-        });
-      });
-
-    }).catch(err => console.log("SW Registration failed:", err));
-  });
-}
-
-// Optional: Logic to handle the 'skipWaiting' message in sw.js
-// Ensure your sw.js has: 
-// self.addEventListener('message', (event) => { if (event.data.action === 'skipWaiting') self.skipWaiting(); });
-   
 
    
 function buildThemeGrid(){
@@ -1847,6 +1794,60 @@ applyTheme(curTheme);  // apply saved theme
 applyLang(curLang);    // apply saved language + build cards
 newChat();
 
+   /* ════════════════════════════════════════════
+           FOR THE APP UPDATE NOTIFICATION 
+════════════════════════════════════════════ */
+
+   let newWorker;
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    reg.addEventListener('updatefound', () => {
+      newWorker = reg.installing;
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          // This is where you'd show a "New Update! Tap to reload" toast/button
+          if(confirm("New version available! Update now?")) {
+            window.location.reload();
+          }
+        }
+      });
+    });
+  });
+}
+   // --- UNIVERSAL PWA LOADER & UPDATER ---
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      
+      // Check for updates every time the app is opened
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        
+        newWorker.addEventListener('statechange', () => {
+          // If a new service worker is installed and ready
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            
+            // Create a simple update banner/alert
+            const updateNotify = confirm("A new version is available! Refresh now?");
+            if (updateNotify) {
+              // This tells the new SW to take control and reloads the page
+              newWorker.postMessage({ action: 'skipWaiting' });
+              window.location.reload();
+            }
+          }
+        });
+      });
+
+    }).catch(err => console.log("SW Registration failed:", err));
+  });
+}
+
+// Optional: Logic to handle the 'skipWaiting' message in sw.js
+// Ensure your sw.js has: 
+// self.addEventListener('message', (event) => { if (event.data.action === 'skipWaiting') self.skipWaiting(); });
+   
 </script>
 </body>
 </html>
