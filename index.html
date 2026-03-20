@@ -1849,6 +1849,12 @@ if ('serviceWorker' in navigator) {
 // Ensure your sw.js has: 
 // self.addEventListener('message', (event) => { if (event.data.action === 'skipWaiting') self.skipWaiting(); });
    
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+      .then(() => console.log("Service Worker Registered"))
+      .catch(err => console.log("Service Worker Failed", err));
+  }
 </script>
 </body>
 </html>
