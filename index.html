@@ -2,16 +2,46 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<!-- ── VIEWPORT: edge-to-edge, notch-aware ─────────────────── -->
-<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,interactive-widget=resizes-visual"/>
-<!-- ── PWA / STATUS BAR ────────────────────────────────────── -->
-<meta name="theme-color" content="#000000" id="theme-color-meta"/>
+
+<!-- ── VIEWPORT: edge-to-edge, notch + gesture nav bar aware ── -->
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,viewport-fit=cover,interactive-widget=resizes-visual"/>
+
+<!-- ── CHROMIUM: hide browser UI completely ─────────────────── -->
+<!-- display:standalone in manifest removes address bar.       -->
+<!-- These tags ensure no browser chrome on any engine.        -->
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="application-name" content="Operion"/>
+
+<!-- ── APPLE / IOS ─────────────────────────────────────────── -->
+<!-- Enables full-screen standalone mode on iOS Safari          -->
 <meta name="apple-mobile-web-app-capable" content="yes"/>
+<!-- black-translucent: app renders behind status bar (notch)  -->
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="Operion"/>
-<meta name="mobile-web-app-capable" content="yes"/>
+<!-- Apple touch icons (add icon-180.png to your repo) -->
+<link rel="apple-touch-icon" href="icon-512.png"/>
+<link rel="apple-touch-icon" sizes="180x180" href="icon-512.png"/>
+<link rel="apple-touch-startup-image" href="icon-512.png"/>
+
+<!-- ── ANDROID / CHROMIUM SYSTEM BAR THEMING ───────────────── -->
+<!-- theme-color controls: status bar + gesture nav bar in Chrome on Android -->
+<!-- Updated dynamically by applyTheme() for every theme switch -->
+<meta name="theme-color" content="#000000" id="theme-color-meta"/>
+<!-- media variants so the bar matches before JS loads -->
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)"  id="theme-color-dark"/>
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" id="theme-color-light"/>
+
+<!-- ── WINDOWS / CHROMIUM DESKTOP ──────────────────────────── -->
 <meta name="msapplication-TileColor" content="#000000"/>
+<meta name="msapplication-starturl" content="./"/>
+
+<!-- ── MANIFEST ─────────────────────────────────────────────── -->
 <link rel="manifest" href="manifest.json"/>
+<!-- Fallback icon for browsers that read it directly -->
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
+<link rel="shortcut icon" href="icon-192.png"/>
+
 <title>Operion</title>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"/>
 <link id="hljs-css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css"/>
@@ -78,7 +108,20 @@
 /* ── BASE RESET ──────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{height:100%;overflow:hidden}
-body{height:100%;overflow:hidden;background:var(--bg);color:var(--w1);font-family:var(--font);-webkit-font-smoothing:antialiased;font-size:14.5px;line-height:1.5;touch-action:manipulation}
+body{
+  height:100%;overflow:hidden;
+  background:var(--bg);color:var(--w1);
+  font-family:var(--font);-webkit-font-smoothing:antialiased;
+  font-size:14.5px;line-height:1.5;touch-action:manipulation;
+  /* Extend body bg into gesture nav bar area (Android) */
+  background-clip:padding-box;
+}
+/* Ensure content behind safe areas matches theme bg */
+html{
+  background:var(--bg);
+  /* On iOS, this colors the overscroll bounce area */
+  overscroll-behavior:none;
+}
 *{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .bubble,.mdbody,.mdbody *,.p-url,.code-wrap pre,.sb-creator,.tb-creator{-webkit-user-select:text;user-select:text}
 ::selection{background:rgba(128,128,128,.22)}
@@ -981,12 +1024,27 @@ function applyTheme(id){
   if(id==='dark') document.documentElement.removeAttribute('data-theme');
   else document.documentElement.setAttribute('data-theme',id);
   const t=THEMES.find(x=>x.id===id)||THEMES[0];
-  // Update meta theme-color and Apple status bar style
-  const mt=document.getElementById('theme-color-meta');
-  if(mt) mt.content=t.bar;
-  // For light themes, tell iOS status bar to use dark text
-  const msm=document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
-  if(msm) msm.content=t.light?'default':'black-translucent';
+  // ── System bar theming (status bar + gesture nav bar + notch) ──
+  // On Android Chrome: theme-color controls status bar AND gesture nav bar
+  // On iOS Safari:     apple-mobile-web-app-status-bar-style controls status bar
+  const mt = document.getElementById('theme-color-meta');
+  if (mt) mt.content = t.bar;
+
+  // Also update the prefers-color-scheme variants
+  const mtDark  = document.getElementById('theme-color-dark');
+  const mtLight = document.getElementById('theme-color-light');
+  if (mtDark)  mtDark.content  = t.bar;
+  if (mtLight) mtLight.content = t.bar;
+
+  // iOS: for light themes use "default" (dark text in status bar),
+  //      for dark themes use "black-translucent" (white text, app bleeds under bar)
+  const iosBar = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+  if (iosBar) iosBar.content = t.light ? 'default' : 'black-translucent';
+
+  // Android Chromium: update the manifest theme_color dynamically via
+  // a fresh meta tag mutation — Chrome reads it in real-time
+  // This themes both the status bar AND the gesture navigation bar
+  document.body.style.setProperty('--nav-bar-bg', t.bar);
   // Syntax highlighting
   const hl=document.getElementById('hljs-css');
   if(hl) hl.href=t.light
@@ -1354,23 +1412,86 @@ async function copyShareLink(){await navigator.clipboard.writeText($('share-url-
 function exportChat(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({session:curSid,messages:history.slice(1)},null,2)],{type:'application/json'}));a.download=`operion-${curSid||'chat'}.json`;a.click();}
 
 /* ═════════════════════════════════════════
-   SERVICE WORKER (PWA)
+   SERVICE WORKER + PWA INSTALL
 ═════════════════════════════════════════ */
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js')
-      .then(reg=>{
-        reg.addEventListener('updatefound',()=>{
-          const nw=reg.installing;
-          nw.addEventListener('statechange',()=>{
-            if(nw.state==='installed'&&navigator.serviceWorker.controller){
-              if(confirm('A new version of Operion is available. Update now?')){nw.postMessage({action:'skipWaiting'});window.location.reload();}
+let _deferredInstall = null;
+
+// Capture the install prompt BEFORE it fires (must be early in JS)
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();            // Block the browser's own mini-infobar
+  _deferredInstall = e;          // Save for our custom install button
+  // Show our custom install button if we built one
+  const btn = document.getElementById('install-btn');
+  if (btn) btn.style.display = 'flex';
+});
+
+// Called by a custom "Install App" button (optional)
+function installPWA() {
+  if (!_deferredInstall) return;
+  _deferredInstall.prompt();
+  _deferredInstall.userChoice.then(choice => {
+    _deferredInstall = null;
+    const btn = document.getElementById('install-btn');
+    if (btn) btn.style.display = 'none';
+  });
+}
+
+// After install
+window.addEventListener('appinstalled', () => {
+  _deferredInstall = null;
+  showToast('✓ Operion installed successfully', 'var(--ok)');
+});
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js', { scope: './' })
+      .then(reg => {
+        // Listen for controller change (after skipWaiting)
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          window.location.reload();
+        });
+
+        reg.addEventListener('updatefound', () => {
+          const nw = reg.installing;
+          nw.addEventListener('statechange', () => {
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+              // New version ready — show non-blocking toast instead of confirm()
+              showUpdateToast(nw);
             }
           });
         });
+
+        // Check for updates every time app is focused
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') reg.update();
+        });
       })
-      .catch(err=>console.warn('SW failed:',err));
+      .catch(err => console.warn('[Operion] SW registration failed:', err));
   });
+}
+
+function showUpdateToast(newWorker) {
+  // Create a non-blocking update banner
+  const existing = document.getElementById('update-toast');
+  if (existing) return;
+  const t = document.createElement('div');
+  t.id = 'update-toast';
+  t.style.cssText = [
+    'position:fixed','bottom:calc(var(--mob-nav-h,0px) + var(--safe-bottom) + 80px)',
+    'left:50%','transform:translateX(-50%)',
+    'background:var(--s2)','border:1px solid var(--b2)',
+    'border-radius:var(--r-pill)','padding:10px 16px',
+    'display:flex','align-items:center','gap:10px',
+    'font-size:.76rem','font-weight:500','color:var(--w1)',
+    'box-shadow:0 8px 32px rgba(0,0,0,.6)',
+    'z-index:500','white-space:nowrap',
+    'animation:fu .3s ease both',
+  ].join(';');
+  t.innerHTML = `<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v5M6.5 8v1" stroke="var(--ok)" stroke-width="1.5" stroke-linecap="round"/><circle cx="6.5" cy="6.5" r="5.5" stroke="var(--ok)" stroke-width="1.2"/></svg>New version available<button onclick="newWorker.postMessage({action:'skipWaiting'});this.closest('#update-toast').remove()" style="background:var(--w1);color:var(--bg);border:none;border-radius:var(--r-pill);padding:3px 10px;font-size:.72rem;font-weight:600;cursor:pointer;margin-left:4px">Update</button><button onclick="this.closest('#update-toast').remove()" style="background:none;border:none;color:var(--w3);cursor:pointer;padding:2px 6px;font-size:.8rem">✕</button>`;
+  // Capture newWorker reference in button closures
+  t.querySelectorAll('button')[0].onclick = () => { newWorker.postMessage({ action: 'skipWaiting' }); t.remove(); };
+  document.body.appendChild(t);
+  setTimeout(() => t?.remove(), 12000);
 }
 
 /* ═════════════════════════════════════════
