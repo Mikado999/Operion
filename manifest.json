@@ -1,71 +1,37 @@
 {
-  "name": "Operion — AI Assistant",
+  "name": "Operion",
   "short_name": "Operion",
-  "description": "A high-level AI assistant by Marc-Arthur Samuel Dalus. Build anything with intelligence.",
-  "start_url": "./index.html",
+  "description": "Build anything with AI — by Marc-Arthur Samuel Dalus",
+  "start_url": "./",
   "scope": "./",
-
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
-
   "orientation": "any",
-
   "background_color": "#000000",
   "theme_color": "#000000",
-
-  "id": "operion-ai",
-
+  "lang": "en-US",
+  "dir": "ltr",
   "icons": [
     {
       "src": "icon-192.png",
-      "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-192.png",
       "type": "image/png",
-      "sizes": "192x192",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     },
     {
       "src": "icon-512.png",
-      "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-512.png",
       "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ],
-
-  "screenshots": [
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Operion AI Assistant"
-    }
-  ],
-
-  "categories": ["productivity", "utilities"],
-
-  "lang": "en",
-  "dir": "ltr",
-
-  "prefer_related_applications": false,
-
   "shortcuts": [
     {
-      "name": "New Conversation",
-      "short_name": "New Chat",
-      "description": "Start a new AI conversation",
-      "url": "./index.html?action=new",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+      "name": "New Chat",
+      "url": "./?action=new",
+      "description": "Start a new conversation",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
-  ]
+  ],
+  "prefer_related_applications": false,
+  "categories": ["productivity", "utilities"]
 }
