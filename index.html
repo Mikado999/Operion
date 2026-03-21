@@ -2,46 +2,23 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-
-<!-- ── VIEWPORT: edge-to-edge, notch + gesture nav bar aware ── -->
-<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,viewport-fit=cover,interactive-widget=resizes-visual"/>
-
-<!-- ── CHROMIUM: hide browser UI completely ─────────────────── -->
-<!-- display:standalone in manifest removes address bar.       -->
-<!-- These tags ensure no browser chrome on any engine.        -->
+<!-- VIEWPORT — edge-to-edge, notch + gesture nav bar -->
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,interactive-widget=resizes-visual"/>
+<!-- PWA — makes Chrome/Edge/Samsung show the install prompt -->
+<link rel="manifest" href="manifest.json"/>
+<!-- Android: themes status bar + gesture nav bar to match app -->
+<meta name="theme-color" content="#000000" id="theme-color-meta"/>
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme:dark)" id="theme-color-dark"/>
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme:light)" id="theme-color-light"/>
 <meta name="mobile-web-app-capable" content="yes"/>
-<meta name="application-name" content="Operion"/>
-
-<!-- ── APPLE / IOS ─────────────────────────────────────────── -->
-<!-- Enables full-screen standalone mode on iOS Safari          -->
+<!-- iOS — full screen + status bar style -->
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<!-- black-translucent: app renders behind status bar (notch)  -->
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="Operion"/>
-<!-- Apple touch icons (add icon-180.png to your repo) -->
-<link rel="apple-touch-icon" href="icon-512.png"/>
-<link rel="apple-touch-icon" sizes="180x180" href="icon-512.png"/>
-<link rel="apple-touch-startup-image" href="icon-512.png"/>
-
-<!-- ── ANDROID / CHROMIUM SYSTEM BAR THEMING ───────────────── -->
-<!-- theme-color controls: status bar + gesture nav bar in Chrome on Android -->
-<!-- Updated dynamically by applyTheme() for every theme switch -->
-<meta name="theme-color" content="#000000" id="theme-color-meta"/>
-<!-- media variants so the bar matches before JS loads -->
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)"  id="theme-color-dark"/>
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" id="theme-color-light"/>
-
-<!-- ── WINDOWS / CHROMIUM DESKTOP ──────────────────────────── -->
-<meta name="msapplication-TileColor" content="#000000"/>
-<meta name="msapplication-starturl" content="./"/>
-
-<!-- ── MANIFEST ─────────────────────────────────────────────── -->
-<link rel="manifest" href="manifest.json"/>
-<!-- Fallback icon for browsers that read it directly -->
-<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<!-- Favicon -->
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
-<link rel="shortcut icon" href="icon-192.png"/>
-
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png"/>
 <title>Operion</title>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"/>
 <link id="hljs-css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css"/>
@@ -553,6 +530,177 @@ html{
 @media(min-width:1280px){
   :root{--sb-w:256px}.dock-inner{max-width:760px}#msgs{max-width:760px}
 }
+
+/* ═══════════════════════════════════════════
+   PWA INSTALL PANEL
+═══════════════════════════════════════════ */
+#install-panel{
+  position:fixed;bottom:0;left:0;right:0;z-index:600;
+  background:var(--s1);
+  border-top:1px solid var(--b2);
+  border-radius:var(--r-2xl) var(--r-2xl) 0 0;
+  padding:6px 0 calc(20px + var(--safe-bottom));
+  transform:translateY(100%);
+  transition:transform .35s cubic-bezier(.16,1,.3,1);
+  box-shadow:0 -16px 60px rgba(0,0,0,.5);
+}
+#install-panel.show{transform:translateY(0)}
+.ip-handle{width:36px;height:4px;border-radius:2px;background:var(--b3);margin:10px auto 18px}
+.ip-body{padding:0 22px}
+.ip-row{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.ip-icon{
+  width:56px;height:56px;border-radius:14px;
+  background:var(--s3);border:1px solid var(--b2);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.ip-icon svg{width:28px;height:28px}
+.ip-text-wrap{flex:1}
+.ip-title{font-size:.95rem;font-weight:700;color:var(--w1);margin-bottom:3px}
+.ip-sub{font-size:.74rem;color:var(--w3);line-height:1.5}
+.ip-actions{display:flex;gap:8px}
+.ip-btn-install{
+  flex:1;padding:13px;border-radius:var(--r-xl);
+  border:none;background:var(--w1);color:var(--bg);
+  font-family:var(--font);font-size:.88rem;font-weight:700;
+  cursor:pointer;transition:all .15s;
+}
+.ip-btn-install:hover{background:rgba(255,255,255,.88)}
+.ip-btn-dismiss{
+  padding:13px 18px;border-radius:var(--r-xl);
+  border:1px solid var(--b2);background:transparent;
+  color:var(--w3);font-family:var(--font);font-size:.82rem;font-weight:500;
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.ip-btn-dismiss:hover{background:var(--w5);color:var(--w1)}
+.ip-features{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+.ip-feat{
+  display:flex;align-items:center;gap:7px;
+  padding:9px 11px;background:var(--s2);
+  border-radius:var(--r-md);border:1px solid var(--b1);
+}
+.ip-feat-ico{font-size:.9rem;flex-shrink:0}
+.ip-feat-text{font-size:.7rem;color:var(--w2);line-height:1.3}
+
+/* ═══════════════════════════════════════════
+   IN-APP NOTIFICATION PANEL
+═══════════════════════════════════════════ */
+#notif-panel-overlay{
+  position:fixed;top:0;left:0;right:0;height:var(--app-h);
+  z-index:200;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+#notif-panel-overlay.show{opacity:1;pointer-events:all}
+#notif-panel{
+  position:absolute;top:0;right:0;
+  width:320px;height:100%;
+  background:var(--s1);border-left:1px solid var(--b1);
+  padding:calc(16px + var(--safe-top)) 0 calc(16px + var(--safe-bottom));
+  display:flex;flex-direction:column;
+  transform:translateX(100%);
+  transition:transform .28s cubic-bezier(.16,1,.3,1);
+  overscroll-behavior:contain;
+}
+#notif-panel-overlay.show #notif-panel{transform:translateX(0)}
+.np-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:4px 18px 14px;border-bottom:1px solid var(--b1);
+  flex-shrink:0;
+}
+.np-title{font-size:.88rem;font-weight:700;color:var(--w1)}
+.np-actions{display:flex;align-items:center;gap:4px}
+.np-clear{
+  font-size:.68rem;color:var(--w3);background:none;border:none;
+  cursor:pointer;padding:4px 8px;border-radius:var(--r-sm);
+  font-family:var(--font);transition:all .12s;
+}
+.np-clear:hover{background:var(--w5);color:var(--w1)}
+.np-x{
+  width:26px;height:26px;border-radius:6px;
+  border:1px solid var(--b1);background:transparent;
+  color:var(--w3);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .12s;
+}
+.np-x:hover{background:var(--w5);color:var(--w1)}
+.np-list{
+  flex:1;overflow-y:auto;padding:12px 12px;
+  display:flex;flex-direction:column;gap:8px;
+  scrollbar-width:none;
+}
+.np-list::-webkit-scrollbar{display:none}
+.np-empty{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:10px;
+  color:var(--w3);font-size:.8rem;
+}
+.np-empty-ico{
+  width:44px;height:44px;border-radius:50%;
+  border:1px solid var(--b1);
+  display:flex;align-items:center;justify-content:center;
+  opacity:.4;
+}
+
+/* Notification card */
+.nc{
+  display:flex;gap:10px;
+  padding:11px 12px;
+  background:var(--s2);border:1px solid var(--b1);
+  border-radius:var(--r-lg);
+  animation:fu .2s ease both;
+  cursor:default;transition:background .12s;
+}
+.nc:hover{background:var(--s3)}
+.nc.unread{border-left:2px solid var(--ok)}
+.nc.warn{border-left:2px solid var(--warn)}
+.nc.err{border-left:2px solid var(--err)}
+.nc.info{border-left:2px solid var(--w3)}
+.nc-ico{
+  width:30px;height:30px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-size:.85rem;
+}
+.nc-ico.ok-ico{background:rgba(50,213,131,.1)}
+.nc-ico.warn-ico{background:rgba(255,128,64,.1)}
+.nc-ico.err-ico{background:rgba(255,68,68,.1)}
+.nc-ico.info-ico{background:var(--w5)}
+.nc-body{flex:1;min-width:0}
+.nc-title{font-size:.78rem;font-weight:600;color:var(--w1);margin-bottom:2px;line-height:1.3}
+.nc-sub{font-size:.7rem;color:var(--w3);line-height:1.5}
+.nc-time{font-size:.6rem;color:var(--w3);margin-top:4px;font-family:var(--mono)}
+.nc-dismiss{background:none;border:none;color:var(--w3);cursor:pointer;padding:2px;flex-shrink:0;font-size:.75rem;transition:color .12s}.nc-dismiss:hover{color:var(--w1)}
+
+/* Notif badge on topbar bell */
+.notif-badge{
+  position:absolute;top:4px;right:4px;
+  width:7px;height:7px;border-radius:50%;
+  background:var(--err);border:1.5px solid var(--bg);
+  display:none;
+}
+.notif-badge.show{display:block}
+
+/* Toast-style system notification */
+.sys-notif{
+  position:fixed;
+  top:calc(var(--safe-top) + 10px);
+  left:50%;transform:translateX(-50%) translateY(-120%);
+  z-index:700;
+  background:var(--s2);border:1px solid var(--b2);
+  border-radius:var(--r-xl);
+  padding:10px 16px 10px 12px;
+  display:flex;align-items:center;gap:10px;
+  max-width:calc(100vw - 32px);
+  box-shadow:0 8px 32px rgba(0,0,0,.6);
+  transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .3s;
+  opacity:0;
+}
+.sys-notif.show{transform:translateX(-50%) translateY(0);opacity:1}
+.sys-notif-ico{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.85rem}
+.sys-notif-body{flex:1;min-width:0}
+.sys-notif-title{font-size:.78rem;font-weight:600;color:var(--w1);line-height:1.3}
+.sys-notif-sub{font-size:.68rem;color:var(--w3);margin-top:1px}
+.sys-notif-close{background:none;border:none;color:var(--w3);cursor:pointer;padding:2px 4px;font-size:.8rem;transition:color .12s;flex-shrink:0}.sys-notif-close:hover{color:var(--w1)}
+
 </style>
 </head>
 <body>
@@ -643,6 +791,10 @@ html{
     <div class="tb-creator">by <strong>Marc-Arthur Samuel Dalus</strong></div>
     <div class="tb-r">
       <button class="lang-btn" onclick="openSettings()" id="lang-chip"><span class="lang-flag" id="lang-flag">🇺🇸</span><span id="lang-code">EN</span></button>
+      <button class="tb-btn" onclick="openNotifPanel()" data-tip="Notifications" style="position:relative">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1.5a4.5 4.5 0 014.5 4.5c0 2.5.8 3.5 1.5 4.5H1c.7-1 1.5-2 1.5-4.5A4.5 4.5 0 016.5 1.5z" stroke="currentColor" stroke-width="1.2"/><path d="M5.2 11a1.3 1.3 0 002.6 0" stroke="currentColor" stroke-width="1.2"/></svg>
+        <div class="notif-badge" id="notif-badge"></div>
+      </button>
       <button class="tb-btn" onclick="openShare()" data-tip="Share"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="10.5" cy="2.5" r="1.3" stroke="currentColor" stroke-width="1.2"/><circle cx="10.5" cy="10.5" r="1.3" stroke="currentColor" stroke-width="1.2"/><circle cx="2.5" cy="6.5" r="1.3" stroke="currentColor" stroke-width="1.2"/><path d="M3.8 5.9L9.2 3.1M3.8 7.1L9.2 9.9" stroke="currentColor" stroke-width="1.1"/></svg></button>
       <button class="tb-btn" onclick="exportChat()" data-tip="Export"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v8M4 6.5L6.5 9 9 6.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 10h9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></button>
       <button class="tb-btn" onclick="openSettings()" data-tip="Settings"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="1.8" stroke="currentColor" stroke-width="1.2"/><path d="M6.5 1.5V2.8M6.5 10.2V11.5M11.5 6.5H10.2M2.8 6.5H1.5M10.2 2.8L9.3 3.7M3.7 9.3L2.8 10.2M10.2 10.2L9.3 9.3M3.7 3.7L2.8 2.8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></button>
@@ -1244,7 +1396,12 @@ function renderDrawerHistory(){
 function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,145)+'px';}
 function scrollBot(){wrapEl.scrollTo({top:wrapEl.scrollHeight,behavior:'smooth'});}
 wrapEl.addEventListener('scroll',()=>{const btn=$('scroll-btn'),at=wrapEl.scrollHeight-wrapEl.scrollTop-wrapEl.clientHeight<80;btn.classList.toggle('visible',!at&&msgsEl.children.length>0);});
-function showMsgs(){emptyEl.style.display='none';msgsEl.style.display='flex';msgsEl.style.flexDirection='column';if(!curSid)curSid='s'+Date.now()+Math.random().toString(36).slice(2,6);}
+function showMsgs(){
+  const wasEmpty = msgsEl.style.display !== 'flex';
+  emptyEl.style.display='none';msgsEl.style.display='flex';msgsEl.style.flexDirection='column';
+  if(!curSid){ curSid='s'+Date.now()+Math.random().toString(36).slice(2,6); }
+  if(wasEmpty && msgsEl.children.length === 0) notifyConversationStarted();
+}
 function onTxInput(el){autoResize(el);const n=el.value.length;charEl.textContent=n;charEl.classList.toggle('warn',n>1800);}
 function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}
 function suggest(t){promptEl.value=t;onTxInput(promptEl);promptEl.focus();}
@@ -1255,6 +1412,8 @@ function newChat(){
   msgsEl.innerHTML='';msgsEl.style.display='none';emptyEl.style.display='flex';
   pendingFiles=[];renderStrip();promptEl.value='';onTxInput(promptEl);
   $('scroll-btn').classList.remove('visible');renderSB();
+  // Request notif permission on first interaction
+  if (_notifPermission === 'default') requestNotifPermission();
 }
 
 /* SEND / STOP */
@@ -1277,6 +1436,7 @@ async function send(){
   addMsg('user',disp,false,snap);
   const bubble=addMsg('ai','',true);
   abortCtrl=new AbortController();
+  notifyAISpeaking('');
   try{
     let full='';bubble.innerHTML='';
     await callAI(history,tok=>{if(stopFlag){abortCtrl.abort();return;}full+=tok;bubble.innerHTML='';bubble.appendChild(mkMd(full));if(wrapEl.scrollHeight-wrapEl.scrollTop-wrapEl.clientHeight<120)scrollBot();},abortCtrl.signal);
@@ -1284,10 +1444,15 @@ async function send(){
     bubble.innerHTML='';bubble.appendChild(mkMd(full));
     history.push({role:'assistant',content:full});
     await saveSession();
+    notifyAIDone(full.length);
     if(autoTTS)speak(full);
   }catch(err){
-    if(err.name==='AbortError'||stopFlag){const p=bubble.querySelector('.mdbody');if(!p||!p.textContent.trim())bubble.innerHTML='<span style="color:var(--w3);font-size:.82rem;font-style:italic">Response stopped.</span>';}
-    else{bubble.innerHTML='';bubble.appendChild(mkError(err.message));}
+    if(err.name==='AbortError'||stopFlag){
+      const p=bubble.querySelector('.mdbody');
+      if(!p||!p.textContent.trim())bubble.innerHTML='<span style="color:var(--w3);font-size:.82rem;font-style:italic">Response stopped.</span>';
+      notifyStopped();
+    }
+    else{bubble.innerHTML='';bubble.appendChild(mkError(err.message));notifyError(err.message);}
   }finally{streaming=false;abortCtrl=null;setSendMode('send');promptEl.focus();}
 }
 
@@ -1357,7 +1522,7 @@ function toggleMic(){
 
 /* VOICE PANEL */
 function openVoice(){voiceOn=true;vMuted=false;$('voice-ov').classList.add('open');showMsgs();setOrb('listen');updateVoiceBadge();listenLoop();}
-function closeVoice(){voiceOn=false;$('voice-ov').classList.remove('open');vRecog?.stop();vRecog=null;speechSynthesis.cancel();setOrb('idle');}
+function closeVoice(){voiceOn=false;$('voice-ov').classList.remove('open');vRecog?.stop();vRecog=null;speechSynthesis.cancel();setOrb('idle');notifyVoiceEnded();}
 function setOrb(s){const o=$('vorb');o.classList.remove('listen','speak');if(s==='listen'){o.classList.add('listen');$('v-stat').textContent='Listening…';$('v-sub').textContent='Speak now';}else if(s==='speak'){o.classList.add('speak');$('v-stat').textContent='Responding…';$('v-sub').textContent='';}else{$('v-stat').textContent='Paused';$('v-sub').textContent='';}}
 function toggleVMute(){vMuted=!vMuted;$('v-mute-btn').classList.toggle('muted',vMuted);if(vMuted){vRecog?.stop();setOrb('idle');}else{setOrb('listen');listenLoop();}}
 function listenLoop(){
@@ -1387,6 +1552,7 @@ async function voiceSend(text){
     const u=speak(full);
     if(u){u.onend=()=>{if(voiceOn&&!vMuted){setTimeout(()=>{setOrb('listen');listenLoop();},380);}};}
     setOrb('speak');
+    const vcN=getVoiceChar(curVoiceChar); notifyVoiceStarted(vcN.name);
   }catch(e){bubble.innerHTML='';bubble.appendChild(mkError(e.message));}
 }
 
@@ -1411,19 +1577,281 @@ function ovBg(e,id){if(e.target.id===id){const ov=$(id);ov.classList.remove('ope
 async function copyShareLink(){await navigator.clipboard.writeText($('share-url-el').textContent);const btn=$('share-copy-btn'),orig=btn.innerHTML;btn.innerHTML='<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Copied ✓';setTimeout(()=>btn.innerHTML=orig,2200);}
 function exportChat(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({session:curSid,messages:history.slice(1)},null,2)],{type:'application/json'}));a.download=`operion-${curSid||'chat'}.json`;a.click();}
 
+
+/* ═══════════════════════════════════════════════════════════
+   NOTIFICATION SYSTEM
+   - pushNotif()       → add to in-app panel + native push
+   - sysNotif()        → floating top toast (in-app)  
+   - Automatic notifs: chat start, AI speaking, chat end
+═══════════════════════════════════════════════════════════ */
+let _notifs = [];
+let _notifId = 0;
+let _sysNotifTimer = null;
+let _notifPermission = 'default'; // 'default' | 'granted' | 'denied'
+
+/* Request notification permission once (after first interaction) */
+function requestNotifPermission() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted') { _notifPermission = 'granted'; return; }
+  if (Notification.permission === 'denied')  { _notifPermission = 'denied';  return; }
+  Notification.requestPermission().then(p => {
+    _notifPermission = p;
+    if (p === 'granted') {
+      pushNotif({
+        type: 'ok',
+        title: 'Notifications enabled',
+        sub: 'You will now receive updates from Operion.',
+        icon: '🔔',
+      });
+    }
+  });
+}
+
+/**
+ * pushNotif({ type, title, sub, icon, detail })
+ * type: 'ok' | 'warn' | 'err' | 'info'
+ * Adds to in-app panel + sends native OS notification if permitted
+ */
+function pushNotif({ type = 'info', title, sub = '', icon = '💬', detail = '', showSys = true }) {
+  const id = ++_notifId;
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString(curLang || 'en', { hour: '2-digit', minute: '2-digit' });
+  const notif = { id, type, title, sub, icon, detail, time: timeStr, unread: true };
+  _notifs.unshift(notif);
+  if (_notifs.length > 50) _notifs.pop();
+
+  // Update badge
+  const badge = document.getElementById('notif-badge');
+  if (badge) badge.classList.add('show');
+
+  // Render panel list
+  renderNotifPanel();
+
+  // In-app floating toast
+  if (showSys) sysNotif({ type, title, sub, icon });
+
+  // Native OS notification (when app is in background)
+  if (_notifPermission === 'granted' && document.hidden) {
+    try {
+      new Notification('Operion — ' + title, {
+        body: sub || detail,
+        icon: './icon-192.png',
+        badge: './icon-192.png',
+        tag: 'operion-' + type,
+        silent: false,
+      });
+    } catch(_) {}
+  }
+}
+
+/** In-app floating top toast */
+function sysNotif({ type = 'info', title, sub = '', icon = '💬' }) {
+  const el  = document.getElementById('sys-notif');
+  const ico = document.getElementById('sys-notif-ico');
+  const ttl = document.getElementById('sys-notif-title');
+  const sb  = document.getElementById('sys-notif-sub');
+  if (!el) return;
+
+  ico.textContent = icon;
+  ico.style.background = type === 'ok'   ? 'rgba(50,213,131,.12)' :
+                         type === 'warn' ? 'rgba(255,128,64,.12)'  :
+                         type === 'err'  ? 'rgba(255,68,68,.12)'   :
+                                           'var(--w5)';
+  ttl.textContent = title;
+  sb.textContent  = sub;
+
+  el.classList.add('show');
+  clearTimeout(_sysNotifTimer);
+  _sysNotifTimer = setTimeout(closeSysNotif, 4200);
+}
+
+function closeSysNotif() {
+  const el = document.getElementById('sys-notif');
+  if (el) el.classList.remove('show');
+  clearTimeout(_sysNotifTimer);
+}
+
+/** Open/close the in-app notification panel */
+function openNotifPanel() {
+  const ov = document.getElementById('notif-panel-overlay');
+  if (!ov) return;
+  ov.classList.add('show');
+  // Mark all as read
+  _notifs.forEach(n => n.unread = false);
+  const badge = document.getElementById('notif-badge');
+  if (badge) badge.classList.remove('show');
+  lockScroll(ov);
+}
+function closeNotifPanel() {
+  const ov = document.getElementById('notif-panel-overlay');
+  if (ov) { ov.classList.remove('show'); unlockScroll(ov); }
+}
+function clearAllNotifs() {
+  _notifs = [];
+  renderNotifPanel();
+}
+function dismissNotif(id) {
+  _notifs = _notifs.filter(n => n.id !== id);
+  renderNotifPanel();
+  if (!_notifs.length) {
+    const badge = document.getElementById('notif-badge');
+    if (badge) badge.classList.remove('show');
+  }
+}
+
+function renderNotifPanel() {
+  const list  = document.getElementById('np-list');
+  const empty = document.getElementById('np-empty');
+  if (!list) return;
+  list.querySelectorAll('.nc').forEach(el => el.remove());
+  if (!_notifs.length) {
+    if (empty) empty.style.display = 'flex';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  _notifs.forEach(n => {
+    const d = document.createElement('div');
+    d.className = 'nc' + (n.unread ? ' unread' : '') + (n.type === 'warn' ? ' warn' : n.type === 'err' ? ' err' : n.type === 'ok' ? '' : ' info');
+    d.innerHTML = `
+      <div class="nc-ico ${n.type === 'ok' ? 'ok-ico' : n.type === 'warn' ? 'warn-ico' : n.type === 'err' ? 'err-ico' : 'info-ico'}">${n.icon}</div>
+      <div class="nc-body">
+        <div class="nc-title">${n.title}</div>
+        ${n.sub ? `<div class="nc-sub">${n.sub}</div>` : ''}
+        ${n.detail ? `<div class="nc-sub" style="margin-top:4px;color:var(--w2);font-size:.68rem">${n.detail}</div>` : ''}
+        <div class="nc-time">${n.time}</div>
+      </div>
+      <button class="nc-dismiss" onclick="dismissNotif(${n.id})">✕</button>`;
+    list.appendChild(d);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AUTOMATIC CHAT NOTIFICATIONS
+═══════════════════════════════════════════════════════════ */
+
+function notifyConversationStarted() {
+  pushNotif({
+    type: 'ok',
+    title: 'Conversation started',
+    sub: 'Operion is ready. Ask anything.',
+    icon: '💬',
+    detail: `Session: ${curSid?.slice(0,8) || '—'} · ${new Date().toLocaleTimeString()}`,
+    showSys: true,
+  });
+}
+
+function notifyAISpeaking(preview) {
+  const shortened = preview ? preview.slice(0, 80) + (preview.length > 80 ? '…' : '') : '';
+  pushNotif({
+    type: 'info',
+    title: 'Operion is responding',
+    sub: shortened,
+    icon: '🤖',
+    detail: 'AI is generating a response',
+    showSys: false, // too frequent — only log to panel
+  });
+}
+
+function notifyAIDone(charCount) {
+  pushNotif({
+    type: 'ok',
+    title: 'Response ready',
+    sub: `${charCount.toLocaleString()} characters generated`,
+    icon: '✓',
+    detail: 'Tap to read the full response',
+    showSys: false,
+  });
+}
+
+function notifyVoiceStarted(charName) {
+  pushNotif({
+    type: 'info',
+    title: `${charName} is speaking`,
+    sub: 'Voice mode active — Operion is reading aloud',
+    icon: '🔊',
+    showSys: true,
+  });
+}
+
+function notifyVoiceEnded() {
+  pushNotif({
+    type: 'info',
+    title: 'Voice session ended',
+    sub: 'Conversation saved to history',
+    icon: '🔇',
+    showSys: false,
+  });
+}
+
+function notifyStopped() {
+  pushNotif({
+    type: 'warn',
+    title: 'Generation stopped',
+    sub: 'Response was interrupted by user',
+    icon: '⏹',
+    showSys: false,
+  });
+}
+
+function notifyError(msg) {
+  pushNotif({
+    type: 'err',
+    title: 'Error',
+    sub: msg,
+    icon: '⚠️',
+    showSys: true,
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PWA INSTALL PANEL
+═══════════════════════════════════════════════════════════ */
+let _installDismissed = sessionStorage.getItem('operion_install_dismissed') === 'true';
+
+function showInstallPanel() {
+  if (_installDismissed) return;
+  const panel = document.getElementById('install-panel');
+  if (!panel) return;
+  setTimeout(() => panel.classList.add('show'), 600);
+}
+
+function doInstall() {
+  dismissInstall();
+  if (typeof installPWA === 'function') installPWA();
+}
+
+function dismissInstall(noShow = false) {
+  _installDismissed = true;
+  sessionStorage.setItem('operion_install_dismissed', 'true');
+  const panel = document.getElementById('install-panel');
+  if (panel) panel.classList.remove('show');
+}
+
+/* Override install prompt listener to show our panel */
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _deferredInstall = e;
+  showInstallPanel();
+});
+
+window.addEventListener('appinstalled', () => {
+  _deferredInstall = null;
+  dismissInstall();
+  pushNotif({
+    type: 'ok',
+    title: 'Operion installed!',
+    sub: 'App added to your home screen',
+    icon: '📲',
+    showSys: true,
+  });
+});
+
 /* ═════════════════════════════════════════
    SERVICE WORKER + PWA INSTALL
 ═════════════════════════════════════════ */
 let _deferredInstall = null;
 
-// Capture the install prompt BEFORE it fires (must be early in JS)
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();            // Block the browser's own mini-infobar
-  _deferredInstall = e;          // Save for our custom install button
-  // Show our custom install button if we built one
-  const btn = document.getElementById('install-btn');
-  if (btn) btn.style.display = 'flex';
-});
+// [install prompt handled by notification system]
 
 // Called by a custom "Install App" button (optional)
 function installPWA() {
@@ -1436,11 +1864,7 @@ function installPWA() {
   });
 }
 
-// After install
-window.addEventListener('appinstalled', () => {
-  _deferredInstall = null;
-  showToast('✓ Operion installed successfully', 'var(--ok)');
-});
+// [appinstalled handled by notification system]
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -1520,5 +1944,69 @@ newChat();
 // Dismiss splash after app is ready
 setTimeout(dismissSplash, 2200);
 </script>
+
+<!-- ═══════════════════ PWA INSTALL PANEL ═══════════════════ -->
+<div id="install-panel">
+  <div class="ip-handle"></div>
+  <div class="ip-body">
+    <div class="ip-row">
+      <div class="ip-icon">
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="14,2 26,8 26,20 14,26 2,20 2,8" stroke="white" stroke-width="1.5" fill="none"/>
+          <polygon points="14,2 26,8 14,14" fill="white" opacity=".5"/>
+          <polygon points="14,14 26,20 14,26 2,20" fill="white" opacity=".35"/>
+        </svg>
+      </div>
+      <div class="ip-text-wrap">
+        <div class="ip-title">Add Operion to your screen</div>
+        <div class="ip-sub">Install for the full experience — offline access, instant launch, no browser bar</div>
+      </div>
+    </div>
+    <div class="ip-features">
+      <div class="ip-feat"><span class="ip-feat-ico">⚡</span><span class="ip-feat-text">Instant load</span></div>
+      <div class="ip-feat"><span class="ip-feat-ico">📡</span><span class="ip-feat-text">Works offline</span></div>
+      <div class="ip-feat"><span class="ip-feat-ico">🔔</span><span class="ip-feat-text">Notifications</span></div>
+      <div class="ip-feat"><span class="ip-feat-ico">🖥️</span><span class="ip-feat-text">Full screen</span></div>
+    </div>
+    <div class="ip-actions" style="margin-top:16px">
+      <button class="ip-btn-install" onclick="doInstall()">Install App</button>
+      <button class="ip-btn-dismiss" onclick="dismissInstall()">Not now</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ IN-APP NOTIFICATION PANEL ═══════════════════ -->
+<div id="notif-panel-overlay" onclick="closeNotifPanel()">
+  <div id="notif-panel" onclick="event.stopPropagation()">
+    <div class="np-head">
+      <span class="np-title">Notifications</span>
+      <div class="np-actions">
+        <button class="np-clear" onclick="clearAllNotifs()">Clear all</button>
+        <button class="np-x" onclick="closeNotifPanel()">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="np-list" id="np-list">
+      <div class="np-empty" id="np-empty">
+        <div class="np-empty-ico">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2a6 6 0 016 6c0 3 1 4.5 2 6H2c1-1.5 2-3 2-6a6 6 0 016-6z" stroke="currentColor" stroke-width="1.3"/><path d="M8 16a2 2 0 004 0" stroke="currentColor" stroke-width="1.3"/></svg>
+        </div>
+        No notifications yet
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- System notification popup (shows at top) -->
+<div class="sys-notif" id="sys-notif">
+  <div class="sys-notif-ico" id="sys-notif-ico">💬</div>
+  <div class="sys-notif-body">
+    <div class="sys-notif-title" id="sys-notif-title">Operion</div>
+    <div class="sys-notif-sub" id="sys-notif-sub"></div>
+  </div>
+  <button class="sys-notif-close" onclick="closeSysNotif()">✕</button>
+</div>
+
 </body>
 </html>
