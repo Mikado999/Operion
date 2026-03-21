@@ -1,21 +1,30 @@
 {
   "name": "Operion",
   "short_name": "Operion",
-  "description": "My custom mobile application hosted on GitHub.",
+  "description": "An AI platform built for the people by Marc-Arthur Samuel Dalus.",
+  "id": "/Operion/",
   "start_url": "index.html",
+  "scope": "/Operion/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#007bff",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "icons": [
     {
       "src": "icon.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "maskable"
     }
-  ]
+  ],
+  "categories": ["productivity", "utilities"],
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  }
 }
